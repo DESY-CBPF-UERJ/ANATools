@@ -1,0 +1,1 @@
+pip3 install ./dist/anatools-0.3.0.tar.gz

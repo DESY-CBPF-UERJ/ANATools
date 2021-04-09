@@ -40,8 +40,5 @@ setup(
     ],
 )
 
-with open("./update.sh", "w") as f:
-    f.write("git fetch\n")
-    f.write("git merge origin/main\n")
-    f.write("python3 setup.py sdist\n")
+with open("./install.sh", "w") as f:
     f.write(f"pip3 install ./dist/anatools-{__version__}.tar.gz")
