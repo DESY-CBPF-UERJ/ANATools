@@ -1,8 +1,10 @@
 from setuptools import setup
 
+from src import __version__
+
 setup(
     name='anatools',
-    version='0.1.0',
+    version=__version__,
     author='Gabriel Moreira, Gilson Correia, Matheus Costa, Raphael Souza',
     author_email='gabrielmscampos@gmail.com, gilson.correiasilva@gmail.com, mataiascost@gmail.com, trivium.raphael@gmail.com',
     packages=[
@@ -37,3 +39,9 @@ setup(
         "uproot3-methods>=0.10.1",
     ],
 )
+
+with open("./update.sh", "w") as f:
+    f.write("git fetch\n")
+    f.write("git merge origin/main\n")
+    f.write("python3 setup.py sdist\n")
+    f.write(f"pip3 install ./dist/anatools-{__version__}.tar.gz")
