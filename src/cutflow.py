@@ -54,8 +54,8 @@ def combine_cutflow_files(basedir, period, samples):
             dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
             cutflow_file.write("Data scale weight = " + str(dataScaleWeight)+"\n")
             cutflow_file.write("------------------------------------------------------------------------------------"+"\n")
-            cutflow_file.write('Cutflow             Selected Events      Stat. Error         Efficiency (%)'+"\n")
+            cutflow_file.write('Cutflow                  Selected Events      Stat. Error         Efficiency (%)'+"\n")
             for i in range(len(cut_name)):
-                cutflow_file.write(cut_name[i].ljust(15) + "%18.6f %16.6f %19.4f" % (cut_val[i]*dataScaleWeight, cut_unc[i]*dataScaleWeight, (cut_val[i]*100)/SUM_GEN_WGT)+"\n")
+                cutflow_file.write(cut_name[i].ljust(20) + "%18.6f %16.6f %19.4f" % (cut_val[i]*dataScaleWeight, cut_unc[i]*dataScaleWeight, (cut_val[i]*100)/SUM_GEN_WGT)+"\n")
             cutflow_file.write(""+"\n")
             cutflow_file.write(""+"\n")
