@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import mplhep as hep
 from matplotlib.ticker import AutoMinorLocator
 
-def ANAStart():
+#======================================================================================================================
+def start():
     """
     Define initial setup to be used in the plots and terminal outputs
     """
@@ -13,7 +14,8 @@ def ANAStart():
     matplotlib.rcParams['xtick.labelsize'] = 14
     matplotlib.rcParams['ytick.labelsize'] = 14
 
-def ANAPos(gs1, grid, main, sub):
+#======================================================================================================================
+def position(gs1, grid, main, sub):
     """
     Auxiliar function to compute the position of the subplot
 
@@ -34,7 +36,8 @@ def ANAPos(gs1, grid, main, sub):
         N = 0
     return gs1[N]    
 
-def ANALabels(xlabel=None, ylabel=None):
+#======================================================================================================================
+def labels(xlabel=None, ylabel=None):
     """
     Set up the label names if required
 
@@ -47,7 +50,8 @@ def ANALabels(xlabel=None, ylabel=None):
     if ylabel is not None:
         plt.ylabel(ylabel, size=14, horizontalalignment='right', y=1.0)
 
-def ANAStyle(
+#======================================================================================================================
+def style(
     ax, 
     lumi=0, 
     year=0, 

@@ -2,10 +2,11 @@ import os
 
 import pandas as pd
 import uproot3 as uproot
+from tqdm import tqdm
 
-def combine_jobs(basedir, period, samples, TreeName="selection", format="pickle"):
+def generate_files(basedir, period, samples, TreeName="selection", format="pickle"):
     """
-    Combine jobs by dataset event flavour and save
+    Combine jobs by dataset event process and save files
 
     Args:
         basedir (str): Path to analysis root folder
@@ -28,7 +29,7 @@ def combine_jobs(basedir, period, samples, TreeName="selection", format="pickle"
     if not os.path.exists(period_path):
         os.makedirs(period_path)
 
-    for datasets in samples.keys():
+    for datasets in tqdm(samples.keys()):
         first = True
         DATA_LUMI = 0
         PROC_XSEC = 0
@@ -46,7 +47,7 @@ def combine_jobs(basedir, period, samples, TreeName="selection", format="pickle"
                             if line[:17] == "Sum of genWeights" :
                                 SUM_GEN_WGT += float(line.split()[3])
 
-                    rootfile = cutflow = os.path.join(basedir, dataset, "Tree.root")
+                    rootfile = os.path.join(basedir, dataset, "Tree.root")
                     f = uproot.open(rootfile)
                     tree = f[TreeName]
                     df = tree.pandas.df(flatten=False)

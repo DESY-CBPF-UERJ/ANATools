@@ -1,12 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-class Control:
+class control:
     """
     Produce control information to assist in the defition of cuts
     """
-    def __init__(self, var, signal_list, others_list, weight=None, bins=[0, 25, 50, 75, 100], above=True):
+    #==============================================================================================================
+    def __init__(self, var, signal_list, others_list, weight=None, bins=np.linspace(0,100,5), above=True):
         self.bins = bins
+        self.var = var
+        self.signal_list = signal_list
+        self.others_list = others_list
+        self.weight = weight         
+        
         use_bins = [np.array([-np.inf]), np.array(bins), np.array([np.inf])]
         use_bins = np.concatenate(use_bins)
     
@@ -74,8 +80,9 @@ class Control:
         self.eff_signal = self.hist_signal/self.full_signal
         self.eff_others = self.hist_others/self.full_others
         self.rej_others = 1 - self.eff_others
-        
-    def PurityPlot(self, label='Signal purity', color='blue', cuts=None):
+    
+    #==============================================================================================================
+    def purity_plot(self, label='Signal purity', color='blue', cuts=None):
         plt.plot(self.bins, self.purity, color=color, label=label)
         if cuts is None:
             return None
@@ -87,7 +94,8 @@ class Control:
                 pur_values.append(pur)
             return pur_values
 
-    def SignalEffPlot(self, label='Signal eff.', color='green', cuts=None):
+    #==============================================================================================================
+    def signal_eff_plot(self, label='Signal eff.', color='green', cuts=None):
         plt.plot(self.bins, self.eff_signal, color=color, label=label)
         if cuts is None:
             return None
@@ -98,8 +106,9 @@ class Control:
                 eff_sig = self.eff_signal[test[0]]
                 eff_sig_values.append(eff_sig)
             return eff_sig_values
-        
-    def BkgEffPlot(self, label='Bkg. eff.', color='red', cuts=None):
+     
+    #============================================================================================================== 
+    def bkg_eff_plot(self, label='Bkg. eff.', color='red', cuts=None):
         plt.plot(self.bins, self.eff_others, color=color, label=label)    
         if cuts is None:
             return None
@@ -110,22 +119,60 @@ class Control:
                 eff_others = self.eff_others[test[0]]
                 eff_others_values.append(eff_others)
             return eff_others_values
+        
+    #==============================================================================================================    
+    def bin_purity_plot(self, label='Signal purity per bin', color='blue', bins=None):
+        
+        if bins is None:
+            bins=self.bins
     
-    def EffPurPlot(self, purity_label='Signal purity', eff_signal_label='Signal eff.', eff_others_label='Bkg eff.'):
-        self.PurityPlot(label=purity_label)
-        self.SignalEffPlot(label=eff_signal_label)
-        self.BkgEffPlot(label=eff_others_label)
+        hist_signal_list = []
+        for signal in self.signal_list:
+            if self.weight is not None:
+                hist, bins = np.histogram( signal[self.var], weights=signal[self.weight], bins=bins )
+            else:
+                hist, bins = np.histogram( signal[self.var], bins=bins )
+            hist_signal_list.append(hist)
+        hist_signal = hist_signal_list[0]
+        for i in range(len(self.signal_list)-1):
+            hist_signal = hist_signal + hist_signal_list[i+1]
     
-    def ROCPlot(self, label='Signal-bkg ROC', color='blue', linestyle="-"):
+        hist_others_list = []
+        for others in self.others_list:
+            if self.weight is not None:
+                hist, bins = np.histogram( others[self.var], weights=others[self.weight], bins=bins )
+            else:
+                hist, bins = np.histogram( others[self.var], bins=bins )
+            hist_others_list.append(hist)
+        hist_others = hist_others_list[0]
+        for i in range(len(self.others_list)-1):
+            hist_others = hist_others + hist_others_list[i+1]
+        
+        hist_signal_purity = hist_signal/(hist_signal + hist_others)
+        bincentres = [(bins[i]+bins[i+1])/2. for i in range(len(bins)-1)]
+        hist_signal_purity = hist_signal_purity.tolist()
+    
+        left_bins = [ bins[0], bincentres[0] ]
+        right_bins = [ bincentres[-1], bins[-1] ]
+    
+        plt.plot(left_bins, [hist_signal_purity[0], hist_signal_purity[0]], color=color)
+        plt.plot(right_bins, [hist_signal_purity[-1], hist_signal_purity[-1]], color=color)
+        plt.step(bincentres, hist_signal_purity, where='mid', color=color, label=label)    
+        
+        
+    #==============================================================================================================
+    def roc_plot(self, label='Signal-bkg ROC', color='blue', linestyle="-"):
         plt.plot(self.rej_others, self.eff_signal, color=color, label=label, linestyle=linestyle)
     
-    def AUC(self):
+    #==============================================================================================================
+    def auc(self):
         area = 0
         for i in range(len(self.bins)-1):
             area += 0.5*(self.eff_signal[i+1] + self.eff_signal[i])*abs(self.rej_others[i+1] - self.rej_others[i])
         return area    
     
-    def BkgEff(self, cut, apx=False):
+    #==============================================================================================================
+    def bkg_eff(self, cut, apx=False):
         eff_bkg = -999
         if apx is True:
             test = min(enumerate(self.bins), key=lambda x: abs(x[1]-cut))

@@ -9,11 +9,13 @@ setup(
     author_email='gabrielmscampos@gmail.com, gilson.correiasilva@gmail.com, mataiascost@gmail.com, trivium.raphael@gmail.com',
     packages=[
     	'anatools',
-        'anatools.plot'
+    	'anatools.analysis',
+    	'anatools.data'
     ],
     package_dir={
     	'anatools': 'src',
-        'anatools.plot': 'src/plot'
+    	'anatools.analysis': 'src/analysis',
+    	'anatools.data': 'src/data'
     },
     license='LICENSE',
     description='HEP Analysis tools.',
@@ -37,6 +39,7 @@ setup(
         "uhi>=0.2.1",
         "uproot3>=3.14.4",
         "uproot3-methods>=0.10.1",
+        "tqdm>=4.59.0",
     ],
 )
 

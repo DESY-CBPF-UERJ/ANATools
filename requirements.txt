@@ -16,3 +16,4 @@ six>=1.15.0
 uhi>=0.2.1
 uproot3>=3.14.4
 uproot3-methods>=0.10.1
+tqdm>=4.59.0

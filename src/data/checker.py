@@ -1,6 +1,7 @@
 import os
 
 import uproot3 as uproot
+from tqdm import tqdm
 
 def check_integrity(basedir, period, samples, TreeName="selection"):
     """
@@ -19,7 +20,7 @@ def check_integrity(basedir, period, samples, TreeName="selection"):
     Error_OldJobs = []
     Error_Output = []
 
-    for datasets in samples.keys():
+    for datasets in tqdm(samples.keys()):
         count_good = 0
         count_bad = 0
         Nentries = 0

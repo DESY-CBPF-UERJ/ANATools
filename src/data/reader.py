@@ -1,8 +1,9 @@
 import os
 
 import pandas as pd
+from tqdm import tqdm
 
-def read_datasets(basedir, period):
+def read_files(basedir, period):
     """
     Read combined datasets into pandas DataFrame object.
 
@@ -17,7 +18,7 @@ def read_datasets(basedir, period):
     datasets_abspath = [(f, os.path.join(datasets_dir, f)) for f in os.listdir(datasets_dir)]
     datasets = {}
 
-    for dataset, abspath in datasets_abspath:
+    for dataset, abspath in tqdm(datasets_abspath):
         dataset_name = dataset.split(".")[0]
         if dataset.endswith(".p"):
             datasets[dataset_name] = pd.read_pickle(abspath)
