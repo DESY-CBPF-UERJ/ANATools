@@ -10,12 +10,14 @@ setup(
     packages=[
     	'anatools',
     	'anatools.analysis',
-    	'anatools.data'
+    	'anatools.data',
+    	'anatools.statistic'
     ],
     package_dir={
     	'anatools': 'src',
     	'anatools.analysis': 'src/analysis',
-    	'anatools.data': 'src/data'
+    	'anatools.data': 'src/data',
+        'anatools.statistic': 'src/statistic'
     },
     license='LICENSE',
     description='HEP Analysis tools.',
@@ -40,6 +42,8 @@ setup(
         "uproot3>=3.14.4",
         "uproot3-methods>=0.10.1",
         "tqdm>=4.59.0",
+        "mpmath>=1.1.0",
+        "futures>=3.1.1",
     ],
 )
 

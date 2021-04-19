@@ -37,7 +37,7 @@ def position(gs1, grid, main, sub):
     return gs1[N]    
 
 #======================================================================================================================
-def labels(xlabel=None, ylabel=None):
+def labels( ax, xlabel=None, ylabel=None):
     """
     Set up the label names if required
 
@@ -46,9 +46,9 @@ def labels(xlabel=None, ylabel=None):
         ylabel (str, optional): Y-axis label. Defaults to None.
     """
     if xlabel is not None:
-        plt.xlabel(xlabel, size=14, horizontalalignment='right', x=1.0)
+        ax.set_xlabel(xlabel, size=14, horizontalalignment='right', x=1.0)
     if ylabel is not None:
-        plt.ylabel(ylabel, size=14, horizontalalignment='right', y=1.0)
+        ax.set_ylabel(ylabel, size=14, horizontalalignment='right', y=1.0)
 
 #======================================================================================================================
 def style(
@@ -97,6 +97,9 @@ def style(
     ax.spines['left'].set_linewidth(1)
     ax.spines['right'].set_linewidth(1)
     ax.margins(x=0)
+    
+    #x1,x2,y1,y2 = plt.axis()
+    #plt.axis((x1,x2,y1 - 0.00001*y1,y2 + 0.05*y2))
 
     if xlog:
         plt.xscale('log')
@@ -127,4 +130,4 @@ def style(
     if (lumi == 0) and (year != 0):
         hep.cms.lumitext('$(13\ \mathrm{TeV}, $'+str(year)+'$)$', ax=ax, fontsize=13)
 
-    plt.legend(numpoints=1, ncol=legend_ncol, prop={'size': 10.5}, frameon=False, loc=legend_loc)
+    ax.legend(numpoints=1, ncol=legend_ncol, prop={'size': 10.5}, frameon=False, loc=legend_loc)

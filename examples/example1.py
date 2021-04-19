@@ -13,7 +13,7 @@ ana.start()
 # Generate a list of datasets for each sample
 #=================================================================================================================
 
-basedir = "/home/HEP_Project/OUTPUT/Test"
+basedir = "/home/gcorreia/cernbox/HEP_Project/CMS_HHDM/OUTPUT/Trigger"
 list_basedir = os.listdir(basedir)
 TreeName = 'selection'
 period = '16'
@@ -40,6 +40,10 @@ samples = {
     'TWZToLL_tlept_Wlept':  [i for i in list_basedir if 'TWZToLL_tlept_Wlept' in i],
     #'DYJetsToTauTau':       [i for i in list_basedir if 'DYJetsToTauTau' in i],
     #'WJetsToLNu':           [i for i in list_basedir if 'WJetsToLNu' in i],
+    #'Data_SingleEle_H':     [i for i in list_basedir if 'Data_SingleEle_H' in i],
+    #'Data_DoubleEle_H':     [i for i in list_basedir if 'Data_DoubleEle_H' in i],
+    #'Data_SingleMu_H':      [i for i in list_basedir if 'Data_SingleMu_H' in i],
+    #'Data_DoubleMu_H':      [i for i in list_basedir if 'Data_DoubleMu_H' in i],
 }
 
 
@@ -138,7 +142,7 @@ def signal_label(param_0, param_1):
 #=================================================================================================================
 # Set up the figure and the subplots grid
 #=================================================================================================================
-fig1 = plt.figure(figsize=(18,6))
+fig1 = plt.figure(figsize=(20,6))
 grid = [2, 3]
 gs1 = gs.GridSpec(grid[0], grid[1], height_ratios=[4, 1])
 
@@ -156,14 +160,14 @@ ana.step_plot( ax1, var, df_1000_800, label=signal_label(1000,800), color='turqu
 ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategray', weight="evtWeight", bins=bins )
 ybkg, errbkg = ana.stacked_plot( ax1, var, dataframes, labels, colors, weight="evtWeight", bins=bins )  # Produce the stacked plot
 ydata, errdata = ana.data_plot( ax1, var, df_DATA, bins=bins )
-ana.labels(ylabel="Events")  # Set up the label names
+ana.labels(ax1, ylabel="Events")  # Set up the label names
 ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=2, ylim=[1.e-2,1.e6], xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2
 #==================================================
 ana.ratio_plot( ax2, ydata, errdata, ybkg, errbkg, bins=bins)
-ana.labels( xlabel=r"$E_\mathrm{T}^\mathrm{miss}\ [\mathrm{GeV}]$", ylabel="Data / Bkg.")  # Set up the label names
+ana.labels(ax2, xlabel=r"$E_\mathrm{T}^\mathrm{miss}\ [\mathrm{GeV}]$", ylabel="Data / Bkg.")  # Set up the label names
 ana.style(ax2, ylim=[0., 2], yticks=[0, 0.5, 1, 1.5, 2], xgrid=True, ygrid=True) 
 
 
@@ -180,7 +184,7 @@ ana.stacked_plot( ax1, var, dataframes, labels, colors, weight="evtWeight", bins
 ana.step_plot( ax1, var, df_1000_100, label=signal_label(1000,100), color='blue', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_1000_800, label=signal_label(1000,800), color='turquoise', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategray', weight="evtWeight", bins=bins )
-ana.labels(ylabel="Events")  # Set up the label names
+ana.labels(ax1, ylabel="Events")  # Set up the label names
 ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=3, ylim=[1.e-2,1.e6], xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
@@ -190,7 +194,7 @@ ctr = ana.control( var, [df_1000_800], dataframes, weight="evtWeight", bins=np.l
 #ctr.purity_plot()
 ctr.signal_eff_plot(label='Signal_1000_800 efficiency')
 ctr.bkg_eff_plot()
-ana.labels( xlabel=r"$\Delta \phi^{ll, \mathrm{MET}}$", ylabel="Control")  # Set up the label names
+ana.labels(ax2, xlabel=r"$\Delta \phi^{ll, \mathrm{MET}}$", ylabel="Control")  # Set up the label names
 ana.style(ax2, ylim=[0., 1.1], yticks=[0., 0.2, 0.4, 0.6, 0.8, 1.], xgrid=True, ygrid=True) 
 
 
@@ -209,21 +213,90 @@ var = "MET_LepLep_Mt"
 bins = np.linspace(150,450,21)
 ysgn1, errsgn1 = ana.step_plot( ax1, var, df_1000_800, label=r'$t\bar{t}$ CR', color='blue', weight="evtWeight", bins=bins, error=True, normalize=True )
 ysgn2, errsgn2 = ana.step_plot( ax1, var, df_400_100, label=r'$t\bar{t}$ SR', color='red', weight="evtWeight", bins=bins, error=True, normalize=True )
-ana.labels(ylabel="Events")  # Set up the label names
+ana.labels(ax1, ylabel="Events")  # Set up the label names
 ana.style(ax1, lumi=35.9, year=2016, legend_ncol=1, xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2
 #==================================================
 ana.ratio_plot( ax2, ysgn1, errsgn1, ysgn2, errsgn2, bins=bins, numerator="mc", color='blue')
-ana.labels( xlabel=r"$M_T^{ll, \mathrm{MET}}$", ylabel=r'CR / SR')  # Set up the label names
+ana.labels(ax2, xlabel=r"$M_T^{ll, \mathrm{MET}}$", ylabel=r'CR / SR')  # Set up the label names
 ana.style(ax2, ylim=[0., 4], yticks=[0., 1, 2, 3, 4], xgrid=True, ygrid=True) 
 
 
 #=================================================================================================================
 # Make final setup, save and show plots
 #=================================================================================================================
-plt.subplots_adjust(left=0.055, bottom=0.115, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
-plt.savefig(os.path.basename(__file__)[:-3]+'.png')
-plt.savefig(os.path.basename(__file__)[:-3]+'.pdf')
+plt.subplots_adjust(left=0.055, bottom=0.115, right=0.98, top=0.95, wspace=0.35, hspace=0.0)
+plt.savefig('plots1.png')
+plt.savefig('plots1.pdf')
 plt.show()
+
+
+
+
+
+
+
+#=================================================================================================================
+# Set up the figure and the subplots grid
+#=================================================================================================================
+fig1 = plt.figure(figsize=(20,6))
+grid = [2, 3]
+gs1 = gs.GridSpec(grid[0], grid[1], height_ratios=[4, 1])
+
+#df_DATA["Pass_MET_150"] = np.array([df_DATA["MET_pt"] > 90])[0,:]
+#df_DATA["Pass_MET_200"] = np.array([df_DATA["MET_pt"] > 100])[0,:]
+
+
+#=================================================================================================================
+N = 1
+#=================================================================================================================
+#==================================================
+ax1 = plt.subplot(ana.position(gs1,grid,N,1))              # Positioning at subplot 1 of the plot number 1
+#==================================================
+var = "LeadingLep_pt"
+bins = np.linspace(0,600,61)
+yratio, ye_below, ye_above = ana.efficiency_plot( ax1, var, df_400_100, "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", label="binomial", color='black', bins=bins, histograms=True, uncertainty="binomial" )
+ana.labels(ax1, xlabel=r"$\mathrm{Leading\ } p_T^l\ [\mathrm{GeV}]$", ylabel=r'Events')  # Set up the label names
+ana.style(ax1, lumi=35.9, year=2016, legend_ncol=1, legend_loc='center right') # Set up the plot style and information on top
+
+
+#=================================================================================================================
+N = 2
+#=================================================================================================================
+#==================================================
+ax1 = plt.subplot(ana.position(gs1,grid,N,1))              # Positioning at subplot 1 of the plot number 1
+#==================================================
+var = "LeadingLep_pt"
+bins = np.linspace(0,600,61)
+yratio, ye_below, ye_above = ana.efficiency_plot( ax1, var, df_400_100, "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", label="bayesian", color='black', bins=bins, histograms=True )
+ana.labels(ax1, xlabel=r"$\mathrm{Leading\ } p_T^l\ [\mathrm{GeV}]$", ylabel=r'Events')  # Set up the label names
+ana.style(ax1, lumi=35.9, year=2016, legend_ncol=1, legend_loc='center right') # Set up the plot style and information on top
+
+
+#=================================================================================================================
+N = 3
+#=================================================================================================================
+#==================================================
+ax1 = plt.subplot(ana.position(gs1,grid,N,1))              # Positioning at subplot 1 of the plot number 1
+#==================================================
+var = "LeadingLep_pt"
+bins = np.linspace(0,600,61)
+yratio, ye_below, ye_above = ana.efficiency_plot( ax1, var, df_400_100, "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ", label="HLT_Ele23_Ele12", color='blue', bins=bins )
+yratio, ye_below, ye_above = ana.efficiency_plot( ax1, var, df_400_100, "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_MW", label="HLT_DoubleEle33", color='red', bins=bins )
+ana.labels(ax1, xlabel=r"$\mathrm{Leading\ } p_T^l\ [\mathrm{GeV}]$", ylabel=r'Events')  # Set up the label names
+ana.style(ax1, lumi=35.9, year=2016, legend_ncol=1, legend_loc='lower right') # Set up the plot style and information on top
+
+
+
+#=================================================================================================================
+# Make final setup, save and show plots
+#=================================================================================================================
+plt.subplots_adjust(left=0.055, bottom=0.115, right=0.98, top=0.95, wspace=0.35, hspace=0.0)
+plt.savefig('plots2.png')
+plt.savefig('plots2.pdf')
+plt.show()
+
+
+

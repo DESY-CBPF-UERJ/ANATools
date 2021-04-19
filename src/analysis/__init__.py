@@ -4,6 +4,7 @@ from .plots import (
     step_plot,
     data_plot,
     ratio_plot,
+    efficiency_plot,
 )
 
 from .style import (
@@ -13,12 +14,15 @@ from .style import (
     style,
 )
 
+
+
 __all__ = [
     "control",
     "step_plot",
     "stacked_plot",
     "data_plot",
     "ratio_plot",
+    "efficiency_plot",
     "start",
     "position",
     "labels",

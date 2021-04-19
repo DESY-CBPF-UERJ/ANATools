@@ -17,3 +17,5 @@ uhi>=0.2.1
 uproot3>=3.14.4
 uproot3-methods>=0.10.1
 tqdm>=4.59.0
+mpmath>=1.1.0
+futures>=3.1.1

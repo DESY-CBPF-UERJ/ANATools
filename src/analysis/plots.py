@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as pat
+from matplotlib.ticker import AutoMinorLocator
+from tqdm import tqdm 
+from ..statistic import get_interval, pdf_efficiency
 
 #======================================================================================================================
 def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.linspace(0,100,5) ):
@@ -134,7 +137,7 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
     
     
 #======================================================================================================================    
-def data_plot( ax, var, dataframe, bins=np.linspace(0,100,5) ):
+def data_plot( ax, var, dataframe, bins=np.linspace(0,100,5), label="Data", color="black" ):
     x = np.array(bins)
     dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
     x = x[:-1]
@@ -147,9 +150,9 @@ def data_plot( ax, var, dataframe, bins=np.linspace(0,100,5) ):
         yerr=[errdata, errdata], 
         xerr=0.5*dx, 
         fmt='.', 
-        ecolor='black', 
-        label='Data', 
-        color='black', 
+        ecolor=color, 
+        label=label, 
+        color=color, 
         elinewidth=0.7, 
         capsize=0
     )   
@@ -194,7 +197,115 @@ def ratio_plot( ax, ynum, errnum, yden, errden, bins=np.linspace(0,100,5), color
     
         ax.errorbar(x+0.5*dx, yratio, yerr=[yeratio, yeratio], xerr=0.5*dx, fmt=',', ecolor=color, color=color, elinewidth=1.2, capsize=0)
     
-    
-    
     return yratio
+  
+
+
+    
+#======================================================================================================================
+def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian" ):
+    
+    weight=None # weight was removed from the argument list because the method to calculate uncertainties only considers cases where the events have a weight equal to 1.  
+    
+    ax.set_ylim([0,1.05])
+    plt.axhline(1, color='grey', linewidth=1, linestyle="dotted")
+    
+    if histograms:
+        ax2 = ax.twinx()
+        ax2.set_ylabel(y2label, color='royalblue', size=14, horizontalalignment='right', y=1.0)
+        ax2.tick_params('y', colors='royalblue')
+        ax2.xaxis.set_minor_locator(AutoMinorLocator())
+        ax2.yaxis.set_minor_locator(AutoMinorLocator())
+        ax2.tick_params(which='major', length=8)
+        ax2.tick_params(which='minor', length=4)
+        ax2.margins(x=0)
+        ax.set_zorder(10)
+        ax.patch.set_visible(False)
+       
+    
+    dataframe_selected = dataframe[dataframe[bit] == 1]
+    
+    if weight is None:
+        if histograms:
+            y_before, bins, nothing = ax2.hist( dataframe[var], bins=bins, histtype='step', color='royalblue', linewidth=1 )
+            y_after, bins, nothing = ax2.hist( dataframe_selected[var], bins=bins, histtype='stepfilled', color='aqua', linewidth=0 )
+        else:
+            y_before, bins = np.histogram( dataframe[var], bins )
+            y_after, bins = np.histogram( dataframe_selected[var], bins )    
+    else:
+        if histograms:
+            y_before, bins, nothing = ax2.hist( dataframe[var], bins=bins, histtype='step', color='royalblue', linewidth=1, weights=dataframe[weight] )
+            y_after, bins, nothing = ax2.hist( dataframe_selected[var], bins=bins, histtype='stepfilled', color='aqua', linewidth=0, weights=dataframe_selected[weight] )
+        else:
+            y_before, bins = np.histogram( dataframe[var], bins, weights=dataframe[weight] )
+            y_after, bins = np.histogram( dataframe_selected[var], bins, weights=dataframe_selected[weight] ) 
+            
+    
+    yratio = np.zeros(y_after.size)
+    yeratio_binomial = np.zeros(y_after.size)
+    for i in range(y_after.size):
+        if y_before[i] == 0:
+            yratio[i] = 99999
+        else:
+            yratio[i] = y_after[i]/y_before[i]
+            if(yratio[i] > 1):
+                yratio[i] = 1
+            yeratio_binomial[i] = np.sqrt((y_after[i]/y_before[i])*(1-y_after[i]/y_before[i])*(1/y_before[i])) # binomial uncertainty
+    
+    if uncertainty == "bayesian":
+        
+        y_below = np.zeros(len(y_before))
+        y_above = np.zeros(len(y_before))
+        ye_below = np.zeros(len(y_before))
+        ye_above = np.zeros(len(y_before))
+                
+        for i in tqdm(range(len(y_before))):
+            if y_before[i] == 0:
+                ye_below[i] = 0
+                ye_above[i] = 0
+                continue
+            
+            if y_before[i] > 5000:
+                x_grid = np.linspace(0,1,50001)
+            elif y_before[i] > 1000:
+                x_grid = np.linspace(0,1,20001)
+            elif y_before[i] > 500:
+                x_grid = np.linspace(0,1,5001)
+            elif y_before[i] > 100:
+                x_grid = np.linspace(0,1,2001)
+            elif y_before[i] <= 100:
+                x_grid = np.linspace(0,1,501)
+            
+            y_below[i], y_above[i] = get_interval(x_grid, pdf_efficiency( x_grid, y_after[i], y_before[i] ))
+        
+            ye_below[i] = yratio[i] - y_below[i]
+            ye_above[i] = y_above[i] - yratio[i]
+        
+    elif uncertainty == "binomial":
+        ye_below = yeratio_binomial
+        ye_above = yeratio_binomial
+    
+           
+        
+    x = np.array(bins)
+    dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
+    x = x[:-1]       
+            
+    ax.errorbar(x+0.5*dx, yratio, yerr=[ye_below, ye_above], xerr=0.5*dx, fmt='.', ecolor=color, color=color, elinewidth=0.7, capsize=0, label=label)
+    
+    return yratio, ye_below, ye_above    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     

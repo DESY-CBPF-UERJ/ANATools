@@ -3,7 +3,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import anatools.analysis as ana
+from ..analysis import style, labels
+
 
 
 def generate_cutflow(basedir, period, samples):
@@ -86,16 +87,16 @@ def generate_cutflow(basedir, period, samples):
                 plotted = True
     
         if plot_control == 7:
-            ana.labels(ylabel="Events", xlabel="Selection")
-            ana.style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
+            labels(ax, ylabel="Events", xlabel="Selection")
+            style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
             plt.xticks(range(len(cut_name)), cut_name, rotation = 10, ha="right")
             plot_control = 0
             plot_n += 1
         elif plotted:
             plot_control += 1
     
-    ana.labels(ylabel="Events", xlabel="Selection")
-    ana.style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
+    labels(ax, ylabel="Events", xlabel="Selection")
+    style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
     plt.xticks(range(len(cut_name)), cut_name, rotation = 10, ha="right")
     plt.subplots_adjust(left=0.055, bottom=0.115, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
     plt.savefig("cutflow.png")
