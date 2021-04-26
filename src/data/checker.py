@@ -64,7 +64,7 @@ def check_integrity(basedir, period, samples, TreeName="selection"):
                 Error_Output.append(dataset)
 
         Integrity_Jobs.append({
-            "Dataset": dataset.split(f"_{period}_files_")[0], 
+            "Dataset": datasets, 
             "nFiles": len(samples[datasets]), 
             "Good": count_good, 
             "Bad": str(count_bad), 

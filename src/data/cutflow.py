@@ -22,7 +22,7 @@ def generate_cutflow(basedir, period, samples):
     fig1 = plt.figure(figsize=(35,8))
     plot_control = 0
     plot_n = 1
-    NumPlots = 2
+    NumPlots = 3
 
     for datasets in tqdm(samples.keys()):
         cutflow_file.write("------------------------------------------------------------------------------------"+"\n")
@@ -35,7 +35,7 @@ def generate_cutflow(basedir, period, samples):
         PROC_XSEC = 0
         SUM_GEN_WGT = 0
         for dataset in samples[datasets]:
-            if (dataset[len(datasets)+1:len(datasets)+3] == period):
+            if (dataset.split("_files_")[0][-2:] == period):
                 cutflow = os.path.join(basedir, dataset, "cutflow.txt")
                 cut_name = []
                 cut_val_i = []

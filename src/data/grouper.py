@@ -35,7 +35,7 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
         PROC_XSEC = 0
         SUM_GEN_WGT = 0
         for dataset in samples[datasets]:
-            if (dataset[len(datasets)+1:len(datasets)+3] == period):
+            if (dataset.split("_files_")[0][-2:] == period):
                 cutflow = os.path.join(basedir, dataset, "cutflow.txt")
                 if os.path.isfile(cutflow):
                     with open(cutflow) as f:

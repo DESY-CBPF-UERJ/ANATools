@@ -6,7 +6,7 @@ from tqdm import tqdm
 from ..statistic import get_interval, pdf_efficiency
 
 #======================================================================================================================
-def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.linspace(0,100,5) ):
+def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.linspace(0,100,5), error=True ):
     """
     Produce stacked plot
 
@@ -40,34 +40,34 @@ def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.lins
         weights=w
     )
       
-    
-    counts = np.zeros((len(y),len(bins)-1))
-    ybkg = np.zeros(len(bins)-1)
-    counts2 = np.zeros((len(y),len(bins)-1))
-    yerror = np.zeros(len(bins)-1)
-    for i in range(len(y)):
-        counts[i], bins = np.histogram(y[i], bins, weights=w[i])
-        counts2[i], bins = np.histogram(y[i], bins, weights=np.array(w[i])*np.array(w[i]))
-    for b in range(len(bins)-1):
+    if error:
+        counts = np.zeros((len(y),len(bins)-1))
+        ybkg = np.zeros(len(bins)-1)
+        counts2 = np.zeros((len(y),len(bins)-1))
+        yerror = np.zeros(len(bins)-1)
         for i in range(len(y)):
-            if counts[i,b] > 0:
-                ybkg[b] += counts[i,b]
-                yerror[b] += counts2[i,b]
-    yerror = np.sqrt(yerror)
+            counts[i], bins = np.histogram(y[i], bins, weights=w[i])
+            counts2[i], bins = np.histogram(y[i], bins, weights=np.array(w[i])*np.array(w[i]))
+        for b in range(len(bins)-1):
+            for i in range(len(y)):
+                if counts[i,b] > 0:
+                    ybkg[b] += counts[i,b]
+                    yerror[b] += counts2[i,b]
+        yerror = np.sqrt(yerror)
     
     
-    yl = ybkg - yerror
-    yh = ybkg + yerror
-    x = np.array(bins)
-    dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
-    x = x[:-1]
-    dy = yh - yl
-    pats = [ pat.Rectangle( (x[i], yl[i]), dx[i], dy[i], hatch='/////', fill=False, linewidth=0, edgecolor='grey' ) for i in range(len(x)-1) ]
-    pats.append(pat.Rectangle( (x[len(x)-1], yl[len(x)-1]), dx[len(x)-1], dy[len(x)-1], hatch='/////', fill=False, linewidth=0, edgecolor='grey', label="Stat. Unc." ))
-    for p in pats:
-        ax.add_patch(p) 
+        yl = ybkg - yerror
+        yh = ybkg + yerror
+        x = np.array(bins)
+        dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
+        x = x[:-1]
+        dy = yh - yl
+        pats = [ pat.Rectangle( (x[i], yl[i]), dx[i], dy[i], hatch='/////', fill=False, linewidth=0, edgecolor='grey' ) for i in range(len(x)-1) ]
+        pats.append(pat.Rectangle( (x[len(x)-1], yl[len(x)-1]), dx[len(x)-1], dy[len(x)-1], hatch='/////', fill=False, linewidth=0, edgecolor='grey', label="Stat. Unc." ))
+        for p in pats:
+            ax.add_patch(p) 
     
-    return ybkg, yerror
+        return ybkg, yerror
     
     
     
@@ -87,6 +87,7 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
 
     if weight is None:
         W = None
+        W2 = None
     else:
         W = dataframe[weight]
         W2 = dataframe[weight]*dataframe[weight]
@@ -106,7 +107,10 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
     errMC = np.sqrt(np.array(countsW2))
     
     if normalize:
-        norm_factor = dataframe[weight].sum()
+        if weight is None:
+            norm_factor = len(dataframe[var])
+        else:
+            norm_factor = dataframe[weight].sum()
         yMC = yMC/norm_factor
         errMC = errMC/norm_factor
     
