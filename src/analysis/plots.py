@@ -1,8 +1,12 @@
+import concurrent.futures
+import multiprocessing
+
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as pat
 from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm 
+
 from ..statistic import get_interval, pdf_efficiency
 
 #======================================================================================================================
@@ -207,7 +211,30 @@ def ratio_plot( ax, ynum, errnum, yden, errden, bins=np.linspace(0,100,5), color
 
     
 #======================================================================================================================
-def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian" ):
+def __bayesian(y_before, y_after, yratio):
+
+    if y_before == 0:
+        return 0, 0
+    
+    if y_before > 5000:
+        x_grid = np.linspace(0,1,50001)
+    elif y_before > 1000:
+        x_grid = np.linspace(0,1,20001)
+    elif y_before > 500:
+        x_grid = np.linspace(0,1,5001)
+    elif y_before > 100:
+        x_grid = np.linspace(0,1,2001)
+    elif y_before <= 100:
+        x_grid = np.linspace(0,1,501)
+    
+    y_below, y_above = get_interval( x_grid, pdf_efficiency( x_grid, y_after, y_before ))
+    ye_below = yratio - y_below
+    ye_above = y_above - yratio
+
+    return ye_below, ye_above
+
+
+def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian", multiprocess=True ):
     
     weight=None # weight was removed from the argument list because the method to calculate uncertainties only considers cases where the events have a weight equal to 1.  
     
@@ -257,33 +284,50 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
             yeratio_binomial[i] = np.sqrt((y_after[i]/y_before[i])*(1-y_after[i]/y_before[i])*(1/y_before[i])) # binomial uncertainty
     
     if uncertainty == "bayesian":
+
+        if multiprocess is True:
+
+            cpu_count = multiprocessing.cpu_count()
+            if cpu_count <= 2:
+                cpu_count = 1
+            else:
+                cpu_count -= 2
+
+            with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
+                jobs = list(tqdm(executor.map(__bayesian, y_before, y_after, yratio), total=len(y_before)))
+                jobs_result = [j for j in jobs]
+
+            ye_below = np.array([job[0] for job in jobs_result])
+            ye_above = np.array([job[1] for job in jobs_result])
+
+        else:
         
-        y_below = np.zeros(len(y_before))
-        y_above = np.zeros(len(y_before))
-        ye_below = np.zeros(len(y_before))
-        ye_above = np.zeros(len(y_before))
+            y_below = np.zeros(len(y_before))
+            y_above = np.zeros(len(y_before))
+            ye_below = np.zeros(len(y_before))
+            ye_above = np.zeros(len(y_before))
+                    
+            for i in tqdm(range(len(y_before))):
+                if y_before[i] == 0:
+                    ye_below[i] = 0
+                    ye_above[i] = 0
+                    continue
                 
-        for i in tqdm(range(len(y_before))):
-            if y_before[i] == 0:
-                ye_below[i] = 0
-                ye_above[i] = 0
-                continue
+                if y_before[i] > 5000:
+                    x_grid = np.linspace(0,1,50001)
+                elif y_before[i] > 1000:
+                    x_grid = np.linspace(0,1,20001)
+                elif y_before[i] > 500:
+                    x_grid = np.linspace(0,1,5001)
+                elif y_before[i] > 100:
+                    x_grid = np.linspace(0,1,2001)
+                elif y_before[i] <= 100:
+                    x_grid = np.linspace(0,1,501)
+                
+                y_below[i], y_above[i] = get_interval(x_grid, pdf_efficiency( x_grid, y_after[i], y_before[i] ))
             
-            if y_before[i] > 5000:
-                x_grid = np.linspace(0,1,50001)
-            elif y_before[i] > 1000:
-                x_grid = np.linspace(0,1,20001)
-            elif y_before[i] > 500:
-                x_grid = np.linspace(0,1,5001)
-            elif y_before[i] > 100:
-                x_grid = np.linspace(0,1,2001)
-            elif y_before[i] <= 100:
-                x_grid = np.linspace(0,1,501)
-            
-            y_below[i], y_above[i] = get_interval(x_grid, pdf_efficiency( x_grid, y_after[i], y_before[i] ))
-        
-            ye_below[i] = yratio[i] - y_below[i]
-            ye_above[i] = y_above[i] - yratio[i]
+                ye_below[i] = yratio[i] - y_below[i]
+                ye_above[i] = y_above[i] - yratio[i]
         
     elif uncertainty == "binomial":
         ye_below = yeratio_binomial
