@@ -51,6 +51,7 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
                     f = uproot.open(rootfile)
                     tree = f[TreeName]
                     df = tree.pandas.df(flatten=False)
+                    df = df.loc[:, ~df.columns.duplicated()] # If duplicated columns, keep th first one.
                     if first :
                         df_group = df.copy()
                     else:

@@ -14,6 +14,15 @@ from .style import (
     style,
 )
 
+from .statistic import (
+    pdf_efficiency,
+    get_interval,
+    correlation,
+)
+
+from .mva import (
+    cov_matrix_plot,
+)
 
 
 __all__ = [
@@ -27,4 +36,8 @@ __all__ = [
     "position",
     "labels",
     "style",
+    "pdf_efficiency",
+    "get_interval",
+    "correlation",
+    "cov_matrix_plot",
 ]

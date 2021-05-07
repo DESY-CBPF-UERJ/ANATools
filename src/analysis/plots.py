@@ -7,7 +7,13 @@ import matplotlib.patches as pat
 from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm 
 
-from ..statistic import get_interval, pdf_efficiency
+#from ..statistic import get_interval, pdf_efficiency
+
+from .statistic import (
+    pdf_efficiency,
+    get_interval
+)
+
 
 #======================================================================================================================
 def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.linspace(0,100,5), error=True ):
