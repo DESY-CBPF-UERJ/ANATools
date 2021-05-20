@@ -58,8 +58,10 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
                         df_group = pd.concat([df_group, df])
                     del df 
                     first = False
-        
-        dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
+        if PROC_XSEC == 0:
+            dataScaleWeight = 1
+        else:
+            dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
         df_group['evtWeight'] = df_group['evtWeight']*dataScaleWeight
         
         if format == "pickle":

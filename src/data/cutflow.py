@@ -64,10 +64,14 @@ def generate_cutflow(basedir, period, samples):
 
         if control == 1:
             cut_unc = np.sqrt(cut_unc)
-            dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
+            if PROC_XSEC == 0:
+                dataScaleWeight = 1
+                SUM_GEN_WGT = -1
+            else:
+                dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
+                SUM_GEN_WGT = SUM_GEN_WGT*dataScaleWeight
             cut_val = cut_val*dataScaleWeight
             cut_unc = cut_unc*dataScaleWeight
-            SUM_GEN_WGT = SUM_GEN_WGT*dataScaleWeight
             cutflow_file.write("Data scale weight = " + str(dataScaleWeight)+"\n")
             cutflow_file.write("------------------------------------------------------------------------------------"+"\n")
             cutflow_file.write('Cutflow               Selected Events      Stat. Error         Efficiency (%)'+"\n")
