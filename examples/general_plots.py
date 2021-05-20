@@ -36,7 +36,7 @@ ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategr
 ybkg, errbkg = ana.stacked_plot( ax1, var, dataframes, labels, colors, weight="evtWeight", bins=bins )  # Produce the stacked plot
 ydata, errdata = ana.data_plot( ax1, var, df_DATA, bins=bins )
 ana.labels(ax1, ylabel="Events")  # Set up the label names
-ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=2, ylim=[1.e-2,1.e6], xticklabels=False) # Set up the plot style and information on top
+ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=2, ylim=[1.e-1,1.e6], xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2
@@ -60,7 +60,7 @@ ana.step_plot( ax1, var, df_1000_100, label=signal_label(1000,100), color='blue'
 ana.step_plot( ax1, var, df_1000_800, label=signal_label(1000,800), color='turquoise', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategray', weight="evtWeight", bins=bins )
 ana.labels(ax1, ylabel="Events")  # Set up the label names
-ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=3, ylim=[1.e-2,1.e6], xticklabels=False) # Set up the plot style and information on top
+ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=3, ylim=[1.e-1,1.e6], xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2

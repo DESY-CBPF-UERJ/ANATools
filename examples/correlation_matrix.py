@@ -56,16 +56,16 @@ df_bkg = df_TTTo2L2Nu
 fig = plt.figure(figsize=(18,10))
 
 ax = plt.subplot(1,2,1)
-ana.cov_matrix_plot(ax, df_signal, variables, weight="evtWeight", title="Covariance matrix - Signal", title_size=22, text_size=18, var_names=var_names)
+ana.cov_matrix_plot(ax, df_signal, variables, weight="evtWeight", title="Correlation matrix - Signal", title_size=22, text_size=18, var_names=var_names)
 
 ax = plt.subplot(1,2,2)
-matrix = ana.cov_matrix_plot(ax, df_bkg, variables, weight="evtWeight", title="Covariance matrix - Background")
+matrix = ana.cov_matrix_plot(ax, df_bkg, variables, weight="evtWeight", title="Correlation matrix - Background")
 
 print(matrix)
         
 fig.tight_layout()  
-plt.savefig('covariance.png', fancybox=True)
-plt.savefig('covariance.pdf')
+plt.savefig('correlation.png', fancybox=True)
+plt.savefig('correlation.pdf')
 
 
 
