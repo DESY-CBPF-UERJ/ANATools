@@ -42,13 +42,9 @@ samples = {
     'DYJetsToLL_Pt250to400':    [i for i in list_basedir if 'DYJetsToLL_Pt250to400' in i],
     'DYJetsToLL_Pt400to650':    [i for i in list_basedir if 'DYJetsToLL_Pt400to650' in i],
     'DYJetsToLL_Pt650toInf':    [i for i in list_basedir if 'DYJetsToLL_Pt650toInf' in i],
-    #'DYJetsToTauTau':          [i for i in list_basedir if 'DYJetsToTauTau' in i],
+    'Data':                     [i for i in list_basedir if 'Data' in i],
     #'WJetsToLNu':              [i for i in list_basedir if 'WJetsToLNu' in i],
     #'ZZZ':                     [i for i in list_basedir if 'ZZZ' in i],
-    #'Data_SingleEle_H':        [i for i in list_basedir if 'Data_SingleEle_H' in i],
-    #'Data_DoubleEle_H':        [i for i in list_basedir if 'Data_DoubleEle_H' in i],
-    #'Data_SingleMu_H':         [i for i in list_basedir if 'Data_SingleMu_H' in i],
-    #'Data_DoubleMu_H':         [i for i in list_basedir if 'Data_DoubleMu_H' in i],
 }
 
 
@@ -67,14 +63,14 @@ print(Integrity_Jobs)
 print("")
 print("====================================================================================================")
 print("List of jobs that are not part of the jobs submitted: (remove them!)")
-print(Error_OldJobs)
+print(*Error_OldJobs, sep=' ')
 print("====================================================================================================")
 
 
 print("")
 print("====================================================================================================")
 print("List of jobs with error in the output:")
-print(Error_Output)
+print(*Error_Output, sep=' ')
 print("====================================================================================================")
 print("")
 
@@ -93,7 +89,7 @@ datasets = data.read_files(basedir, period)
 
 for key in datasets.keys():
     dataset = datasets[key] 
-    datasets[key] = dataset[(dataset["RecoLepID"] < 1000) & (dataset["Nbjets"] > 0)]
+    datasets[key] = dataset[(dataset["RecoLepID"] == 13) & (dataset["Nbjets"] == 0) & (dataset["MET_pt"] < 110)]
 
     
 df_400_100 = datasets.get("Signal_400_100")
@@ -120,7 +116,7 @@ df_TTZToQQ = datasets.get("TTZToQQ")
 df_TWZToLL_thad_Wlept = datasets.get("TWZToLL_thad_Wlept")
 df_TWZToLL_tlept_Whad = datasets.get("TWZToLL_tlept_Whad")
 df_TWZToLL_tlept_Wlept = datasets.get("TWZToLL_tlept_Wlept")
-df_DATA = datasets.get("DYJetsToLL_Inclusive")
+df_DATA = datasets.get("Data")
 
 df_DYJetsToLL = pd.concat([df_DYJetsToLL_Inclusive, df_DYJetsToLL_Pt50to100, df_DYJetsToLL_Pt100to250, df_DYJetsToLL_Pt250to400, df_DYJetsToLL_Pt400to650, df_DYJetsToLL_Pt650toInf]).reset_index(drop=True)
 df_Residual = pd.concat([df_WGToLNuG, df_TTZToQQ, df_TWZToLL_thad_Wlept, df_TWZToLL_tlept_Whad, df_TWZToLL_tlept_Wlept, df_WWZ, df_ZGToLLG]).reset_index(drop=True)
