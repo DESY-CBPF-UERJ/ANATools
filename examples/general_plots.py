@@ -28,8 +28,8 @@ N = 1
 #==================================================
 ax1 = plt.subplot(ana.position(gs1,grid,N,1))              # Positioning at subplot 1 of the plot number 1
 #==================================================
-var = "MET_pt"
-bins = np.linspace(0,800,21)
+var = "MET_LepLep_Mt"
+bins = np.linspace(150,450,21)
 ana.step_plot( ax1, var, df_1000_100, label=signal_label(1000,100), color='blue', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_1000_800, label=signal_label(1000,800), color='turquoise', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategray', weight="evtWeight", bins=bins )
@@ -42,7 +42,7 @@ ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=2, ylim=[1.e-1,1.e6]
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2
 #==================================================
 ana.ratio_plot( ax2, ydata, errdata, ybkg, errbkg, bins=bins)
-ana.labels(ax2, xlabel=r"$E_\mathrm{T}^\mathrm{miss}\ [\mathrm{GeV}]$", ylabel="Data / Bkg.")  # Set up the label names
+ana.labels(ax2, xlabel=r"$M_T^{ll, \mathrm{MET}}$", ylabel="Data / Bkg.")  # Set up the label names
 ana.style(ax2, ylim=[0., 2], yticks=[0, 0.5, 1, 1.5, 2], xgrid=True, ygrid=True) 
 
 
@@ -60,7 +60,7 @@ ana.step_plot( ax1, var, df_1000_100, label=signal_label(1000,100), color='blue'
 ana.step_plot( ax1, var, df_1000_800, label=signal_label(1000,800), color='turquoise', weight="evtWeight", bins=bins )
 ana.step_plot( ax1, var, df_400_100, label=signal_label(400,100), color='slategray', weight="evtWeight", bins=bins )
 ana.labels(ax1, ylabel="Events")  # Set up the label names
-ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=3, ylim=[1.e-1,1.e6], xticklabels=False) # Set up the plot style and information on top
+ana.style(ax1, lumi=35.9, year=2016, ylog=True, legend_ncol=3, ylim=[1.e-2,1.e6], xticklabels=False) # Set up the plot style and information on top
 
 #==================================================
 ax2 = plt.subplot(ana.position(gs1,grid,N,2), sharex=ax1)  # Positioning at subplot 2 of the plot number 2
