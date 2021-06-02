@@ -21,7 +21,8 @@ from .statistic import (
 )
 
 from .mva import (
-    cov_matrix_plot,
+    correlation_matrix_plot,
+    confusion_matrix_plot,
 )
 
 

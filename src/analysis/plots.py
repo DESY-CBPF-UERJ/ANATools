@@ -82,7 +82,7 @@ def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.lins
     
     
 #======================================================================================================================    
-def step_plot( ax, var, dataframe, label, color='black', weight=None, error=False, normalize=False, bins=np.linspace(0,100,5) ):
+def step_plot( ax, var, dataframe, label, color='black', weight=None, error=False, normalize=False, bins=np.linspace(0,100,5), linestyle='solid' ):
     """
     Produce signal plot
 
@@ -128,9 +128,9 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
     left_bins = [ bins[0], bincentres[0] ]
     right_bins = [ bincentres[-1], bins[-1] ]
     
-    plt.plot(left_bins, [yMC[0], yMC[0]], color=color, linewidth=1.5)
-    plt.plot(right_bins, [yMC[-1], yMC[-1]], color=color, linewidth=1.5)
-    plt.step(bincentres, yMC, where='mid', color=color, label=label, linewidth=1.5)
+    plt.plot(left_bins, [yMC[0], yMC[0]], color=color, linewidth=1.5, linestyle=linestyle)
+    plt.plot(right_bins, [yMC[-1], yMC[-1]], color=color, linewidth=1.5, linestyle=linestyle)
+    plt.step(bincentres, yMC, where='mid', color=color, label=label, linewidth=1.5, linestyle=linestyle)
     
     
     if error:

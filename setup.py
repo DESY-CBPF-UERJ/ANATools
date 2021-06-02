@@ -42,6 +42,7 @@ setup(
         "tqdm>=4.59.0",
         "mpmath>=1.1.0",
         "futures>=3.1.1",
+        "scikit-learn>=0.24.2",
     ],
 )
 

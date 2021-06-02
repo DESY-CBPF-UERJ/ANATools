@@ -129,7 +129,7 @@ def correlation(x, y, weight=None):
     w = weight
     if w is None:
         w = np.ones(len(x))
-    boolean = [w >= 0]
+    boolean = [w >= 0][0]
     w = np.array(w).ravel()
     w = w[boolean]
     x = np.array(x).ravel()
