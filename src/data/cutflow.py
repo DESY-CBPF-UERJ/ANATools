@@ -22,7 +22,7 @@ def generate_cutflow(basedir, period, samples):
     fig1 = plt.figure(figsize=(35,8))
     plot_control = 0
     plot_n = 1
-    NumPlots = 3
+    NumPlots = 6
 
     for datasets in tqdm(samples.keys()):
         cutflow_file.write("------------------------------------------------------------------------------------"+"\n")

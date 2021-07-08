@@ -43,6 +43,7 @@ setup(
         "mpmath>=1.1.0",
         "futures>=3.1.1",
         "scikit-learn>=0.24.2",
+        #"json>=0.0.0",
     ],
 )
 

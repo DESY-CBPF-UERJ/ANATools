@@ -25,6 +25,10 @@ from .mva import (
     confusion_matrix_plot,
 )
 
+from .systematic import (
+    stacked_sys_plot,
+)
+
 
 __all__ = [
     "control",
@@ -41,4 +45,5 @@ __all__ = [
     "get_interval",
     "correlation",
     "cov_matrix_plot",
+    "stacked_sys_plot",
 ]
