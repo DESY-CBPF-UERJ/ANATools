@@ -7,7 +7,7 @@ from ..analysis import style, labels
 
 
 
-def generate_cutflow(basedir, period, samples):
+def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016):
     """
     Combine cutflow file for each event process for each job directory and produce general cutflow
 
@@ -19,10 +19,10 @@ def generate_cutflow(basedir, period, samples):
     
     cutflow_file = open("cutflow.txt", "w")
 
-    fig1 = plt.figure(figsize=(35,8))
+    fig1 = plt.figure(figsize=(25,8))
     plot_control = 0
     plot_n = 1
-    NumPlots = 6
+    NumPlots = num_plots
 
     for datasets in tqdm(samples.keys()):
         cutflow_file.write("------------------------------------------------------------------------------------"+"\n")
@@ -92,17 +92,17 @@ def generate_cutflow(basedir, period, samples):
     
         if plot_control == 7:
             labels(ax, ylabel="Events", xlabel="Selection")
-            style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
-            plt.xticks(range(len(cut_name)), cut_name, rotation = 10, ha="right")
+            style(ax, lumi=lumi, year=year, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,5.e7], legend_ncol=5)
+            plt.xticks(range(len(cut_name)), cut_name, rotation = 25, ha="right")
             plot_control = 0
             plot_n += 1
         elif plotted:
             plot_control += 1
     
     labels(ax, ylabel="Events", xlabel="Selection")
-    style(ax, lumi=35.9, year=2016, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,1.e7], legend_ncol=5)
-    plt.xticks(range(len(cut_name)), cut_name, rotation = 10, ha="right")
-    plt.subplots_adjust(left=0.055, bottom=0.115, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
+    style(ax, lumi=lumi, year=year, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,5.e7], legend_ncol=5)
+    plt.xticks(range(len(cut_name)), cut_name, rotation = 25, ha="right")
+    plt.subplots_adjust(left=0.055, bottom=0.17, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
     plt.savefig("cutflow.png")
 
     

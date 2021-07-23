@@ -186,3 +186,46 @@ class control:
             if eff_bkg == -999:
                 print("Enter a value that exists in bins")
         return eff_bkg
+    
+    #==============================================================================================================
+    def effpur_plot(self, label='Eff*Pur', color='orchid', cuts=None, normalize=True):
+        effpur_vec = self.eff_signal*self.purity
+        if normalize:
+            not_nan_array = ~ np.isnan(effpur_vec)
+            effpur_vec_good = effpur_vec[not_nan_array]
+            effpur_max = np.amax(effpur_vec_good)
+            effpur_vec = effpur_vec/effpur_max
+            label = label + r" ($\div$ " + "{:.2e}".format(effpur_max) + ")" 
+        plt.plot(self.bins, effpur_vec, color=color, label=label)
+        if cuts is None:
+            return None
+        else:
+            pur_values = []
+            for cut in cuts:
+                test = min(enumerate(self.bins), key=lambda x: abs(x[1]-cut))
+                effpur = effpur_vec[test[0]]
+                effpur_values.append(effpur)
+            return effpur_values
+    
+    #==============================================================================================================
+    def prc_plot(self, label='Signal-bkg PRC', color='blue', linestyle="-", normalize=True):
+        effpur_vec = self.eff_signal*self.purity
+        if normalize:
+            not_nan_array = ~ np.isnan(effpur_vec)
+            effpur_vec_good = effpur_vec[not_nan_array]
+            effpur_max = np.amax(effpur_vec_good)
+            effpur_vec = effpur_vec/effpur_max
+            label = label + r" ($\div$ " + "{:.2e}".format(effpur_max) + ")" 
+        plt.plot(self.eff_signal, effpur_vec, color=color, label=label, linestyle=linestyle)
+        
+    #==============================================================================================================
+    def best_cut(self):
+        effpur_vec = self.eff_signal*self.purity
+        not_nan_array = ~ np.isnan(effpur_vec)
+        effpur_vec_good = effpur_vec[not_nan_array]
+        effpur_max = np.amax(effpur_vec_good)
+        cut_idx = np.where(effpur_vec == effpur_max)
+        best_cut = self.bins[cut_idx]
+        return best_cut[0], effpur_max
+        
+        
