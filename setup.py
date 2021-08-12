@@ -1,12 +1,29 @@
 from setuptools import setup
+from distutils.command.build_py import build_py
 
-from src import __version__
+with open('README.md', 'r') as f:
+    long_description = f.read()
+
+with open('LICENSE', 'r') as f:
+    license = f.read()
+
+from src import (
+    __version__, 
+    __author__,
+    __email__,
+    __description__,
+    __status__
+)
 
 setup(
     name='anatools',
     version=__version__,
-    author='Gabriel Moreira, Gilson Correia, Matheus Costa, Raphael Souza',
-    author_email='gabrielmscampos@gmail.com, gilson.correiasilva@gmail.com, mataiascost@gmail.com, trivium.raphael@gmail.com',
+    description=__description__,
+    long_description=long_description,
+    url='https://github.com/DESY-CBPF-UERJ/ANATools',
+    license=license,
+    author=__version__,
+    author_email=__email__,
     packages=[
     	'anatools',
     	'anatools.analysis',
@@ -17,9 +34,6 @@ setup(
     	'anatools.analysis': 'src/analysis',
     	'anatools.data': 'src/data'
     },
-    license='LICENSE',
-    description='HEP Analysis tools.',
-    keywords=['HEP', 'Analysis'],
     install_requires=[
         "awkward0>=0.15.5",
         "cachetools>=4.2.1",
@@ -43,7 +57,14 @@ setup(
         "mpmath>=1.1.0",
         "futures>=3.1.1",
         "scikit-learn>=0.24.2",
-        #"json>=0.0.0",
+    ],
+    cmdclass={
+        'build_py': build_py
+    },
+    classifiers=[
+        f"Development Status :: 5 - {__status__}",
+        "Programming Language :: Python",
+        "License :: Private",
     ],
 )
 
