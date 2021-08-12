@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -208,8 +210,13 @@ class control:
             return effpur_values
     
     #==============================================================================================================
-    def prc_plot(self, label='Signal-bkg PRC', color='blue', linestyle="-", normalize=True):
+    def prc_plot(self, label='Signal-bkg PRC', color='blue', linestyle="-", normalize=True, cut_eff_signal=None):
         effpur_vec = self.eff_signal*self.purity
+
+        # Sanity check
+        if np.where(effpur_vec > 1)[0].size > 0:
+            warnings.warn('Encountered effpur values above 1.')
+
         if normalize:
             not_nan_array = ~ np.isnan(effpur_vec)
             effpur_vec_good = effpur_vec[not_nan_array]
@@ -217,10 +224,17 @@ class control:
             effpur_vec = effpur_vec/effpur_max
             label = label + r" ($\div$ " + "{:.2e}".format(effpur_max) + ")" 
         plt.plot(self.eff_signal, effpur_vec, color=color, label=label, linestyle=linestyle)
+        if cut_eff_signal:
+            plt.axvline(x=cut_eff_signal, color='grey', linestyle='--')
         
     #==============================================================================================================
-    def best_cut(self):
+    def best_cut(self, cut_eff_signal=None):
         effpur_vec = self.eff_signal*self.purity
+
+        # Transform effpur into -1 where eff_signal <= cut_eff_signal
+        if cut_eff_signal:
+            effpur_vec[self.eff_signal <= cut_eff_signal] = -1
+
         not_nan_array = ~ np.isnan(effpur_vec)
         effpur_vec_good = effpur_vec[not_nan_array]
         effpur_max = np.amax(effpur_vec_good)
