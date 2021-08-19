@@ -48,7 +48,6 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
             if control == 0:
                 Error_OldJobs.append(dataset)
             
-            #print(job)
             cutflow = os.path.join(basedir, dataset, "cutflow.txt")
             bad_0_0 = False
             control = 0
