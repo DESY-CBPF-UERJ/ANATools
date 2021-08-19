@@ -124,13 +124,9 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
         yMC = yMC/norm_factor
         errMC = errMC/norm_factor
     
-    bincentres = [(bins[i]+bins[i+1])/2. for i in range(len(bins)-1)]
-    left_bins = [ bins[0], bincentres[0] ]
-    right_bins = [ bincentres[-1], bins[-1] ]
+    new_yMC = np.append([yMC[0]], yMC)
     
-    plt.plot(left_bins, [yMC[0], yMC[0]], color=color, linewidth=1.5, linestyle=linestyle)
-    plt.plot(right_bins, [yMC[-1], yMC[-1]], color=color, linewidth=1.5, linestyle=linestyle)
-    plt.step(bincentres, yMC, where='mid', color=color, label=label, linewidth=1.5, linestyle=linestyle)
+    plt.step(bins, new_yMC, color=color, label=label, linewidth=1.5, linestyle=linestyle)
     
     
     if error:
