@@ -128,7 +128,6 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
     
     plt.step(bins, new_yMC, color=color, label=label, linewidth=1.5, linestyle=linestyle)
     
-    
     if error:
         x = np.array(bins)
         dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
