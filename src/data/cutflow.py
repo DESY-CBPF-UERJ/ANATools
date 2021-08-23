@@ -7,7 +7,7 @@ from ..analysis import style, labels
 
 
 
-def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016):
+def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016, outpath=os.getcwd()):
     """
     Combine cutflow file for each event process for each job directory and produce general cutflow
 
@@ -16,8 +16,8 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
         period (str): Jobs period used in anafile
         samples (dict): Dictionary mapping each event flavour to jobs directories
     """
-    
-    cutflow_file = open("cutflow.txt", "w")
+    cutflow_filepath = os.path.join(outpath, "cutflow.txt")
+    cutflow_file = open(cutflow_filepath, "w")
 
     fig1 = plt.figure(figsize=(25,8))
     plot_control = 0
@@ -103,6 +103,8 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
     style(ax, lumi=lumi, year=year, ylog=True, xgrid=True, ygrid=True, ylim=[1.e-1,5.e7], legend_ncol=5)
     plt.xticks(range(len(cut_name)), cut_name, rotation = 25, ha="right")
     plt.subplots_adjust(left=0.055, bottom=0.17, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
-    plt.savefig("cutflow.png")
+    
+    cutflow_plot_path = os.path.join(outpath, cutflow.png)
+    plt.savefig(cutflow_plot_path)
 
     
