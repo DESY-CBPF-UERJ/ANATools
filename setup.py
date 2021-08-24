@@ -4,9 +4,6 @@ from distutils.command.build_py import build_py
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-with open('LICENSE', 'r') as f:
-    license = f.read()
-
 from src import (
     __version__, 
     __author__,
@@ -21,7 +18,7 @@ setup(
     description=__description__,
     long_description=long_description,
     url='https://github.com/DESY-CBPF-UERJ/ANATools',
-    license=license,
+    license='MIT License',
     author=__version__,
     author_email=__email__,
     packages=[
