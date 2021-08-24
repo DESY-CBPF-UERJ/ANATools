@@ -82,7 +82,7 @@ def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.lins
     
     
 #======================================================================================================================    
-def step_plot( ax, var, dataframe, label, color='black', weight=None, error=False, normalize=False, bins=np.linspace(0,100,5), linestyle='solid' ):
+def step_plot( ax, var, dataframe, label, color='black', weight=None, error=False, normalize=False, bins=np.linspace(0,100,5), linestyle='solid', overflow=False, underflow=False ):
     """
     Produce signal plot
 
@@ -102,16 +102,22 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
         W = dataframe[weight]
         W2 = dataframe[weight]*dataframe[weight]
 
-    counts, bins = np.histogram(
+    eff_bins = bins[:]
+    if overflow:
+        eff_bins[-1] = np.inf
+    if underflow:
+        eff_bins[0] = -np.inf
+    
+    counts, binsW = np.histogram(
         dataframe[var], 
-        bins=bins, 
+        bins=eff_bins, 
         weights=W
     )
     yMC = np.array(counts)
     
     countsW2, binsW2 = np.histogram(
         dataframe[var], 
-        bins=bins, 
+        bins=eff_bins, 
         weights=W2
     )
     errMC = np.sqrt(np.array(countsW2))
@@ -124,14 +130,9 @@ def step_plot( ax, var, dataframe, label, color='black', weight=None, error=Fals
         yMC = yMC/norm_factor
         errMC = errMC/norm_factor
     
-    bincentres = [(bins[i]+bins[i+1])/2. for i in range(len(bins)-1)]
-    left_bins = [ bins[0], bincentres[0] ]
-    right_bins = [ bincentres[-1], bins[-1] ]
+    ext_yMC = np.append([yMC[0]], yMC)
     
-    plt.plot(left_bins, [yMC[0], yMC[0]], color=color, linewidth=1.5, linestyle=linestyle)
-    plt.plot(right_bins, [yMC[-1], yMC[-1]], color=color, linewidth=1.5, linestyle=linestyle)
-    plt.step(bincentres, yMC, where='mid', color=color, label=label, linewidth=1.5, linestyle=linestyle)
-    
+    plt.step(bins, ext_yMC, color=color, label=label, linewidth=1.5, linestyle=linestyle)
     
     if error:
         x = np.array(bins)
