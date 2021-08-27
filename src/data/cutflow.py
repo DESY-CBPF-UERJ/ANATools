@@ -104,7 +104,7 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
     plt.xticks(range(len(cut_name)), cut_name, rotation = 25, ha="right")
     plt.subplots_adjust(left=0.055, bottom=0.17, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
     
-    cutflow_plot_path = os.path.join(outpath, cutflow.png)
+    cutflow_plot_path = os.path.join(outpath, "cutflow.png")
     plt.savefig(cutflow_plot_path)
 
     
