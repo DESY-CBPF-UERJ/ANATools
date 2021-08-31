@@ -6,7 +6,7 @@ from matplotlib.ticker import AutoMinorLocator
 
 
 #======================================================================================================================
-def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smooth_factor=0.05 ):
+def stacked_sys_plot( ax1, region, var, datasets, labels, colors, systematics, bins, smooth_factor=0.05 ):
     
     #Initialize tables (first index is source, second index is universe, and third index is process)
     Hist_table3D = []
@@ -17,7 +17,7 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
     
     for iSource in systematics.keys():    # loop in the systematic sources
         #--------------------------------------------------------------------------------
-        if systematics[iSource][1] == 1:    # CV
+        if systematics[iSource][0] == 0:    # CV
             
             list_Hist_ProcType = []
             list_Unc_ProcType = []
@@ -35,7 +35,7 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
                 Hist_ProcType = np.zeros(len(bins)-1)
                 Unc_ProcType = np.zeros(len(bins)-1)  # Stat. Uncertainty of Hist
                 for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
-                    proc_dic = datasets[iProcType][iProcDic][var+"_0_0"]
+                    proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_0_0"]
                     Hist_raw = proc_dic["Hist"]
                     Unc_raw = proc_dic["Unc"]
                     Start_raw = proc_dic["Start"]
@@ -84,12 +84,12 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
             
             Hist_table3D.append([list_Hist_ProcType_lumi_down, list_Hist_ProcType_lumi_up])
             Hist_table3D.append([list_Hist_ProcType_stat_down, list_Hist_ProcType_stat_up])
-            
+        
+        
         #--------------------------------------------------------------------------------
-        elif systematics[iSource][1] == 2:   # Other sources with 2 universes
+        elif systematics[iSource][0] != 0:   # Other sources
             
             for iUniverse in range(2):  # loop in the universes
-                
                 list_Hist_ProcType = []
                 list_Unc_ProcType = []
                 for iProcType in range(len(datasets)):  # loop in the proc_type_lists
@@ -97,7 +97,8 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
                     Hist_ProcType = np.zeros(len(bins)-1)
                     Unc_ProcType = np.zeros(len(bins)-1)  # Stat. Uncertainty of Hist
                     for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
-                        proc_dic = datasets[iProcType][iProcDic][var+"_"+str(systematics[iSource][0])+"_"+str(iUniverse)]
+                        print(systematics[iSource][0], iUniverse, iProcType, iProcDic)
+                        proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_"+str(systematics[iSource][0])+"_"+str(iUniverse)]
                         Hist_raw = proc_dic["Hist"]
                         Unc_raw = proc_dic["Unc"]
                         Start_raw = proc_dic["Start"]
@@ -132,7 +133,7 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
     
              
 
-
+    """
     #=======================================================================================================================
     # Get smooth bins
     #Initialize bins (first index is source, and second index is process)
@@ -272,7 +273,7 @@ def stacked_sys_plot( ax1, var, datasets, labels, colors, systematics, bins, smo
    
     return Hist_table2D[0][0], Hist_table3D[0][0], sys_Unc_table2D, sys_Unc_table3D
     
-    
+    """
     
   
     

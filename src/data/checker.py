@@ -4,7 +4,7 @@ import uproot3 as uproot
 from tqdm import tqdm
 import json
 
-def check_integrity(basedir, period, samples, TreeName="selection", systematics={}):
+def check_integrity(basedir, period, samples, TreeName="selection", mode="normal"):
     """
     Check integrity of jobs results.
 
@@ -22,6 +22,10 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
     Error_OldJobs = []
     Error_Output = []
     Resubmit_Jobs = []
+    
+    with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
+        systematics = json.load(json_sys_file)
+    #print(systematics)
 
     for datasets in tqdm(samples.keys()):
         count_good = 0
@@ -29,6 +33,7 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
         Nentries = 0
         job = "None"
         for dataset in samples[datasets]:
+            #print(dataset)
             control = 0
             jobs_file = os.path.join(basedir, "jobs.txt")
             with open(jobs_file) as f:
@@ -67,10 +72,12 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
                             del df
                             
                             #print("")
-                            if( (len(systematics) > 0) and (datasets[:4] != "Data") ):
+                            if mode == "syst":
                                 sys_control = 0
                                 for sys_source in systematics.keys():
                                     sys_list = systematics[sys_source]
+                                    if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
+                                        continue
                                     #print(sys_list)
                                     #print(sys_list[0])
                                     for universe in range(sys_list[1]):
@@ -82,11 +89,12 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
                                         if os.path.isfile(sys_file):
                                             #print(os.stat(sys_file).st_size > 0)
                                             if os.stat(sys_file).st_size > 0:
-                                                temporary_666 = 0
-                                                #with open(sys_file) as json_file:
-                                                    #sys_dict = json.load(json_file)
-                                                    #if len(sys_dict) == 0: 
-                                                    #    sys_control += 1
+                                                #temporary_666 = 0
+                                                with open(sys_file) as json_file:
+                                                    sys_dict = json.load(json_file)
+                                                    #print(sys_dict.keys())
+                                                    if len(sys_dict) == 0: 
+                                                        sys_control += 1
                                             else:
                                                 sys_control += 1
                                         else:
@@ -121,12 +129,14 @@ def check_integrity(basedir, period, samples, TreeName="selection", systematics=
                 bad_0_0 = True
                 
                 
-            if( (len(systematics) > 0) and (datasets[:4] != "Data") ):
+            if mode == "syst":
                 for sys_source in systematics.keys():
                     if( (sys_source == "CV") and bad_0_0 ):
                         continue
                     else:
                         sys_list = systematics[sys_source]
+                        if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
+                            continue
                         for universe in range(sys_list[1]):
                             sys_file = str(sys_list[0]) + "_" + str(universe) + ".json"
                             sys_file = os.path.join(basedir, dataset, "Systematics", sys_file)

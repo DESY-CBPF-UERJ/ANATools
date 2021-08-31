@@ -241,7 +241,7 @@ def __bayesian(y_before, y_after, yratio):
     return ye_below, ye_above
 
 
-def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian", multiprocess=True ):
+def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian", multiprocess=True, overflow=False, underflow=False ):
     
     weight=None # weight was removed from the argument list because the method to calculate uncertainties only considers cases where the events have a weight equal to 1.  
     
@@ -263,20 +263,27 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
     
     dataframe_selected = dataframe[dataframe[bit] == 1]
     
+    # overflow and underflow are not working with histograms=True
+    eff_bins = bins[:]
+    if overflow:
+        eff_bins[-1] = np.inf
+    if underflow:
+        eff_bins[0] = -np.inf
+    
     if weight is None:
         if histograms:
-            y_before, bins, nothing = ax2.hist( dataframe[var], bins=bins, histtype='step', color='royalblue', linewidth=1 )
-            y_after, bins, nothing = ax2.hist( dataframe_selected[var], bins=bins, histtype='stepfilled', color='aqua', linewidth=0 )
+            y_before, bins_not_used, nothing = ax2.hist( dataframe[var], bins=eff_bins, histtype='step', color='royalblue', linewidth=1 )
+            y_after, bins_not_use, nothing = ax2.hist( dataframe_selected[var], bins=eff_bins, histtype='stepfilled', color='aqua', linewidth=0 )
         else:
-            y_before, bins = np.histogram( dataframe[var], bins )
-            y_after, bins = np.histogram( dataframe_selected[var], bins )    
+            y_before, bins_not_use = np.histogram( dataframe[var], eff_bins )
+            y_after, bins_not_use = np.histogram( dataframe_selected[var], eff_bins )    
     else:
         if histograms:
-            y_before, bins, nothing = ax2.hist( dataframe[var], bins=bins, histtype='step', color='royalblue', linewidth=1, weights=dataframe[weight] )
-            y_after, bins, nothing = ax2.hist( dataframe_selected[var], bins=bins, histtype='stepfilled', color='aqua', linewidth=0, weights=dataframe_selected[weight] )
+            y_before, bins_not_use, nothing = ax2.hist( dataframe[var], bins=eff_bins, histtype='step', color='royalblue', linewidth=1, weights=dataframe[weight] )
+            y_after, bins_not_use, nothing = ax2.hist( dataframe_selected[var], bins=eff_bins, histtype='stepfilled', color='aqua', linewidth=0, weights=dataframe_selected[weight] )
         else:
-            y_before, bins = np.histogram( dataframe[var], bins, weights=dataframe[weight] )
-            y_after, bins = np.histogram( dataframe_selected[var], bins, weights=dataframe_selected[weight] ) 
+            y_before, bins_not_use = np.histogram( dataframe[var], eff_bins, weights=dataframe[weight] )
+            y_after, bins_not_use = np.histogram( dataframe_selected[var], eff_bins, weights=dataframe_selected[weight] ) 
             
     
     yratio = np.zeros(y_after.size)
