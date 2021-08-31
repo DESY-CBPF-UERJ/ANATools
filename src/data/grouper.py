@@ -30,9 +30,10 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
         os.makedirs(comb_path)
     if not os.path.exists(period_path):
         os.makedirs(period_path)
-        
-    with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
-        systematics = json.load(json_sys_file)
+       
+    if mode == "syst":
+        with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
+            systematics = json.load(json_sys_file)
 
     for datasets in tqdm(samples.keys()):
         
