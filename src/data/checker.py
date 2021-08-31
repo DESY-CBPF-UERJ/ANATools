@@ -23,9 +23,10 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
     Error_Output = []
     Resubmit_Jobs = []
     
-    with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
-        systematics = json.load(json_sys_file)
-    #print(systematics)
+    if mode == "syst":
+        with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
+            systematics = json.load(json_sys_file)
+        #print(systematics)
 
     for datasets in tqdm(samples.keys()):
         count_good = 0
