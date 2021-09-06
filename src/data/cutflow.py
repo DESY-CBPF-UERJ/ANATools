@@ -16,7 +16,7 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
         period (str): Jobs period used in anafile
         samples (dict): Dictionary mapping each event flavour to jobs directories
     """
-    cutflow_filepath = os.path.join(outpath, "cutflow.txt")
+    cutflow_filepath = os.path.join(outpath, "cutflow_XX.txt")
     cutflow_file = open(cutflow_filepath, "w")
 
     fig1 = plt.figure(figsize=(25,8))
@@ -24,6 +24,7 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
     plot_n = 1
     NumPlots = num_plots
 
+    has_tag = False  # Remove if CMS join 2016 samples again
     for datasets in tqdm(samples.keys()):
         cutflow_file.write("------------------------------------------------------------------------------------"+"\n")
         cutflow_file.write("Cutflow from " + datasets + ":"+"\n")
@@ -35,7 +36,12 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
         PROC_XSEC = 0
         SUM_GEN_WGT = 0
         for dataset in samples[datasets]:
-            if (dataset.split("_files_")[0][-2:] == period):
+            dataset_year = dataset.split("_files_")[0]
+            dataset_year = dataset_year.split("_")[-1]
+            dataset_tag = dataset.split("_"+dataset_year)[0][-3:]
+            if (dataset_year == period):
+                if( dataset_tag == "APV" ): 
+                    has_tag = True
                 cutflow = os.path.join(basedir, dataset, "cutflow.txt")
                 cut_name = []
                 cut_val_i = []
@@ -104,7 +110,13 @@ def generate_cutflow(basedir, period, samples, num_plots=6, lumi=35.9, year=2016
     plt.xticks(range(len(cut_name)), cut_name, rotation = 25, ha="right")
     plt.subplots_adjust(left=0.055, bottom=0.17, right=0.98, top=0.95, wspace=0.25, hspace=0.0)
     
-    cutflow_plot_path = os.path.join(outpath, "cutflow.png")
-    plt.savefig(cutflow_plot_path)
-
+    cutflow_file.close()
+    if( has_tag ):
+        real_cutflow_filepath = os.path.join(outpath, "cutflow_APV_" + period + ".txt")
+        cutflow_plot_path = os.path.join(outpath, "cutflow_APV_" + period + ".png")
+    else:
+        real_cutflow_filepath = os.path.join(outpath, "cutflow_" + period + ".txt")
+        cutflow_plot_path = os.path.join(outpath, "cutflow_" + period + ".png")
     
+    plt.savefig(cutflow_plot_path)
+    os.system("mv " + cutflow_filepath + " " + real_cutflow_filepath)    

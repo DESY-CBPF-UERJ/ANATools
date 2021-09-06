@@ -35,6 +35,7 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
         with open(os.path.join(basedir, "lateral_systematics.json")) as json_sys_file:
             systematics = json.load(json_sys_file)
 
+    has_tag = False  # Remove if CMS join 2016 samples again
     for datasets in tqdm(samples.keys()):
         
         # Initialize source list (object which will store the systematic histograms)
@@ -53,7 +54,12 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
         SUM_GEN_WGT = 0
         for dataset in samples[datasets]:
             #print(dataset)
-            if (dataset.split("_files_")[0][-2:] == period):
+            dataset_year = dataset.split("_files_")[0]
+            dataset_year = dataset_year.split("_")[-1]
+            dataset_tag = dataset.split("_"+dataset_year)[0][-3:]
+            if (dataset_year == period):
+                if( dataset_tag == "APV" ): 
+                    has_tag = True
                 cutflow = os.path.join(basedir, dataset, "cutflow.txt")
                 if os.path.isfile(cutflow):
                     with open(cutflow) as f:
@@ -111,12 +117,23 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
             dataScaleWeight = (PROC_XSEC/SUM_GEN_WGT) * DATA_LUMI
         df_group['evtWeight'] = df_group['evtWeight']*dataScaleWeight
         
-        if format == "pickle":
-            fpath = os.path.join(basedir, "datasets", period, f"{datasets}.p")
-            df_group.to_pickle(fpath)
-        elif format == "parquet":
-            fpath = os.path.join(basedir, "datasets", period, f"{datasets}.parquet")
-            df_group.to_parquet(fpath, index=False)
+        if( has_tag ):
+            period_path = os.path.join(comb_path, "APV_"+period)
+            if not os.path.exists(period_path):
+                os.makedirs(period_path)
+            if format == "pickle":
+                fpath = os.path.join(period_path, f"{datasets}.p")
+                df_group.to_pickle(fpath)
+            elif format == "parquet":
+                fpath = os.path.join(period_path, f"{datasets}.parquet")
+                df_group.to_parquet(fpath, index=False)
+        else:
+            if format == "pickle":
+                fpath = os.path.join(basedir, "datasets", period, f"{datasets}.p")
+                df_group.to_pickle(fpath)
+            elif format == "parquet":
+                fpath = os.path.join(basedir, "datasets", period, f"{datasets}.parquet")
+                df_group.to_parquet(fpath, index=False)
 
         del df_group
         
@@ -136,9 +153,16 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
                         source_list[isource][iuniverse][variable]["Unc"] = New_Unc
                         output_sys_dict[variable] = source_list[isource][iuniverse][variable]
                         output_sys_dict[variable]["LumiUnc"] = DATA_LUMI_UNC
-        
-            with open(os.path.join(basedir, "datasets", period, f"{datasets}.json"), 'w') as json_file:            
-                json.dump(output_sys_dict, json_file)
+            
+            if( has_tag ):
+                period_path = os.path.join(comb_path, "APV_"+period)
+                if not os.path.exists(period_path):
+                    os.makedirs(period_path)
+                with open(os.path.join(basedir, "datasets", period, f"{datasets}.json"), 'w') as json_file:            
+                    json.dump(output_sys_dict, json_file)
+            else:
+                with open(os.path.join(basedir, "datasets", period, f"{datasets}.json"), 'w') as json_file:            
+                    json.dump(output_sys_dict, json_file)
         #--------------------------------------------------------------------
         
         #regions = []
