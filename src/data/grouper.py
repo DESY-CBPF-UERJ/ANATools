@@ -111,6 +111,7 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
                     #---------------------------------------------------
                     
                     first = False
+                    
         if PROC_XSEC == 0:
             dataScaleWeight = 1
         else:
@@ -140,19 +141,21 @@ def generate_files(basedir, period, samples, TreeName="selection", format="pickl
         #---SYS--------------------------------------------------------------
         if mode == "syst":
             output_sys_dict = {}
-            for isource in range(len(source_list)):
-                #if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
-                #    continue
-                for iuniverse in range(len(source_list[isource])):
-                    #print(isource, iuniverse)
-                    #print(source_list[isource][iuniverse].keys())
-                    for variable in source_list[isource][iuniverse].keys():
-                        New_Hist = [x*dataScaleWeight for x in source_list[isource][iuniverse][variable]["Hist"]]
-                        source_list[isource][iuniverse][variable]["Hist"] = New_Hist
-                        New_Unc = [x*dataScaleWeight for x in source_list[isource][iuniverse][variable]["Unc"]]
-                        source_list[isource][iuniverse][variable]["Unc"] = New_Unc
-                        output_sys_dict[variable] = source_list[isource][iuniverse][variable]
-                        output_sys_dict[variable]["LumiUnc"] = DATA_LUMI_UNC
+            if( datasets[:4] == "Data" ): 
+                for variable in source_list[0][0].keys():
+                    output_sys_dict[variable] = source_list[0][0][variable]
+            else:
+                for isource in range(len(source_list)):
+                    for iuniverse in range(len(source_list[isource])):
+                        #print(isource, iuniverse)
+                        #print(source_list[isource][iuniverse].keys())
+                        for variable in source_list[isource][iuniverse].keys():
+                            New_Hist = [x*dataScaleWeight for x in source_list[isource][iuniverse][variable]["Hist"]]
+                            source_list[isource][iuniverse][variable]["Hist"] = New_Hist
+                            New_Unc = [x*dataScaleWeight for x in source_list[isource][iuniverse][variable]["Unc"]]
+                            source_list[isource][iuniverse][variable]["Unc"] = New_Unc
+                            output_sys_dict[variable] = source_list[isource][iuniverse][variable]
+                            output_sys_dict[variable]["LumiUnc"] = DATA_LUMI_UNC
             
             if( has_tag ):
                 period_path = os.path.join(comb_path, "APV_"+period)

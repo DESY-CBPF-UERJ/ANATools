@@ -1,10 +1,11 @@
 import os
 
+import pandas as pd
 import uproot3 as uproot
 from tqdm import tqdm
 import json
 
-def check_integrity(basedir, period, samples, TreeName="selection", mode="normal"):
+def check_integrity(basedir, period, samples, TreeName="selection", mode="normal", verbose=False):
     """
     Check integrity of jobs results.
 
@@ -65,10 +66,13 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
                 bad_0_0 = False
                 control = 0
                 if os.path.isfile(cutflow):
+                    N_entries = 0
                     with open(cutflow) as f:
                         for line in f:
                             control += line.count("Time to process the selection")
-                    if control == 1:
+                            if line[:28] == "Number of entries considered" :
+                                N_entries = int(line.split()[4])
+                    if control == 1 and N_entries > 0:
                         root_file = os.path.join(basedir, dataset, "Tree.root")
                         if os.path.isfile(root_file):
                             f = uproot.open(root_file)
@@ -86,8 +90,6 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
                                         sys_list = systematics[sys_source]
                                         if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
                                             continue
-                                        #print(sys_list)
-                                        #print(sys_list[0])
                                         for universe in range(sys_list[1]):
                                             #print(universe) 
                                             sys_file = str(sys_list[0]) + "_" + str(universe) + ".json"
@@ -180,6 +182,23 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
         resubmit_file = open(file_name, "w")
         for i in range(len(Resubmit_Jobs)):
             resubmit_file.write(Resubmit_Jobs[i]) 
+            
+    if verbose:   
+        Integrity_Jobs = pd.DataFrame(Integrity_Jobs)
+        print(Integrity_Jobs)
+
+        print("")
+        print("====================================================================================================")
+        print("List of jobs that are not part of the jobs submitted: (remove them!)")
+        print(*Error_OldJobs, sep=' ')
+        print("====================================================================================================")
+
+        print("")
+        print("====================================================================================================")
+        print("List of jobs with error in the output:")
+        print(*Error_Output, sep=' ')
+        print("====================================================================================================")
+        print("")
 
     return Integrity_Jobs, Error_OldJobs, Error_Output
 
