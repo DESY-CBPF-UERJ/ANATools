@@ -72,51 +72,56 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
                             control += line.count("Time to process the selection")
                             if line[:28] == "Number of entries considered" :
                                 N_entries = int(line.split()[4])
-                    if control == 1 and N_entries > 0:
-                        root_file = os.path.join(basedir, dataset, "Tree.root")
-                        if os.path.isfile(root_file):
-                            f = uproot.open(root_file)
-                            if len(f.keys()) == 1:
-                                #count_good += 1
-                                tree = f[TreeName]
-                                df = tree.pandas.df(flatten=False)
-                                Nentries += len(df)
-                                del df
+                    try:         
+                        if control == 1 and N_entries > 0:
+                            root_file = os.path.join(basedir, dataset, "Tree.root")
+                            if os.path.isfile(root_file):
+                                f = uproot.open(root_file)
+                                if len(f.keys()) == 1:
+                                    #count_good += 1
+                                    tree = f[TreeName]
+                                    df = tree.pandas.df(flatten=False)
+                                    Nentries += len(df)
+                                    del df
                             
-                                #print("")
-                                if mode == "syst":
-                                    sys_control = 0
-                                    for sys_source in systematics.keys():
-                                        sys_list = systematics[sys_source]
-                                        if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
-                                            continue
-                                        for universe in range(sys_list[1]):
-                                            #print(universe) 
-                                            sys_file = str(sys_list[0]) + "_" + str(universe) + ".json"
-                                            sys_file = os.path.join(basedir, dataset, "Systematics", sys_file)
-                                            #print(sys_file)
-                                            #print(os.path.isfile(sys_file))
-                                            if os.path.isfile(sys_file):
-                                                #print(os.stat(sys_file).st_size > 0)
-                                                if os.stat(sys_file).st_size > 0:
-                                                    #temporary_666 = 0
-                                                    with open(sys_file) as json_file:
-                                                        sys_dict = json.load(json_file)
-                                                        #print(sys_dict.keys())
-                                                        if len(sys_dict) == 0: 
-                                                            sys_control += 1
+                                    #print("")
+                                    if mode == "syst":
+                                        sys_control = 0
+                                        for sys_source in systematics.keys():
+                                            sys_list = systematics[sys_source]
+                                            if( (sys_list[0] > 0) and (datasets[:4] == "Data") ): 
+                                                continue
+                                            for universe in range(sys_list[1]):
+                                                #print(universe) 
+                                                sys_file = str(sys_list[0]) + "_" + str(universe) + ".json"
+                                                sys_file = os.path.join(basedir, dataset, "Systematics", sys_file)
+                                                #print(sys_file)
+                                                #print(os.path.isfile(sys_file))
+                                                if os.path.isfile(sys_file):
+                                                    #print(os.stat(sys_file).st_size > 0)
+                                                    if os.stat(sys_file).st_size > 0:
+                                                        with open(sys_file) as json_file:
+                                                            sys_dict = json.load(json_file)
+                                                            #print(sys_dict.keys())
+                                                            if len(sys_dict) == 0: 
+                                                                sys_control += 1
+                                                    else:
+                                                        sys_control += 1
                                                 else:
                                                     sys_control += 1
-                                            else:
-                                                sys_control += 1
-                                    if sys_control == 0:
+                                        if sys_control == 0:
+                                            count_good += 1
+                                        else: 
+                                            count_bad += 1
+                                            Error_Output.append(dataset)
+                                    else:
                                         count_good += 1
-                                    else: 
-                                        count_bad += 1
-                                        Error_Output.append(dataset)
-                                else:
-                                    count_good += 1
                                     
+                                else:
+                                    count_bad += 1
+                                    Error_Output.append(dataset)
+                                    Resubmit_Jobs.append(job)
+                                    bad_0_0 = True
                             else:
                                 count_bad += 1
                                 Error_Output.append(dataset)
@@ -127,7 +132,8 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
                             Error_Output.append(dataset)
                             Resubmit_Jobs.append(job)
                             bad_0_0 = True
-                    else:
+                    except Exception as ex:
+                        print(str(ex), '---->', dataset)
                         count_bad += 1
                         Error_Output.append(dataset)
                         Resubmit_Jobs.append(job)
@@ -154,7 +160,7 @@ def check_integrity(basedir, period, samples, TreeName="selection", mode="normal
                                 #print(job_eff)
                                 if os.path.isfile(sys_file):
                                     if os.stat(sys_file).st_size > 0:
-                                        temporary_666 = 0
+                                        temporary = 0
                                         #with open(sys_file) as json_file:
                                             #sys_dict = json.load(json_file)
                                             #if len(sys_dict) == 0: 
