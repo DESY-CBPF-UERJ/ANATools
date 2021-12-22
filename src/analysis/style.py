@@ -32,6 +32,8 @@ def position(gs1, grid, main, sub):
         N = main - 1
     elif sub == 2:
         N = main - 1 + grid[1]
+    elif sub == 3:
+        N = main - 1 + 2*grid[1]
     else:
         N = 0
     return gs1[N]    

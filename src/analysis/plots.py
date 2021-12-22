@@ -39,7 +39,7 @@ def stacked_plot( ax, var, dataframes, labels, colors, weight=None, bins=np.lins
     if len(w) == 0:
         w = None
 
-    plt.hist(
+    out_hists = plt.hist(
         y, 
         bins=bins, 
         histtype='stepfilled', 

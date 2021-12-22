@@ -15,7 +15,7 @@ def read_files(basedir, period, mode="normal"):
     Returns:
         dict: Dictonary mapping dataset name to pandas DataFrame.
     """
-    datasets_dir = os.path.join(basedir, "datasets", period)
+    datasets_dir = os.path.join(basedir, period)
     datasets_abspath = [(f, os.path.join(datasets_dir, f)) for f in os.listdir(datasets_dir)]
     datasets = {}
 

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import matplotlib.patches as pat
+import copy
 from matplotlib.ticker import AutoMinorLocator
 
 pd.set_option('display.max_rows', None)
@@ -32,9 +33,14 @@ class combine:
             self.hist_table3D.append([0, 0])
             self.unc_table3D.append([0, 0])
         
+        self.XS_syst_list = []
+        for jSource in systematics.keys():    
+            if jSource[-2:] == "XS":   
+                self.XS_syst_list.append(jSource)
+        
         self.sys_IDs = []
         self.sys_labels = []
-        self.sys_colors = ["darkgrey", "darkorange", "blue", "red", "limegreen", "darkgoldenrod", "orchid", "darkgreen", "skyblue", "darkviolet", "pink", "gold", "aqua", "brown", "red", "orange", "lime", "darkgreen", "darkgoldenrod", "skyblue", "blue", "orchid", "darkviolet", "pink", "gold", "aqua", "brown"]
+        self.sys_colors = ["dimgrey", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine"]                   
     
         for iSource in systematics.keys():    # loop in the systematic sources
             #--------------------------------------------------------------------------------
@@ -113,7 +119,7 @@ class combine:
                 self.sys_labels.append("Lumi")
         
             #--------------------------------------------------------------------------------
-            elif( (iSource == "JES") or (iSource == "Pileup") or (iSource == "LepID") ):  
+            elif( systematics[iSource][1] == 2 ):  
             
                 for iUniverse in range(2):  # loop in the universes
                     list_Hist_ProcType = []
@@ -159,6 +165,179 @@ class combine:
 
                 self.sys_IDs.append(systematics[iSource][0])
                 self.sys_labels.append(iSource)
+            
+         
+            #--------------------------------------------------------------------------------
+            elif( (iSource == "Scales") ):  # Envelop
+            
+                list_Hist_ProcType_up = []
+                list_Unc_ProcType_up = []
+                list_Hist_ProcType_down = []
+                list_Unc_ProcType_down = []
+                #print(systematics[iSource][1])
+                for iUniverse in range(systematics[iSource][1]):  # loop in the universes
+                    
+                    list_Hist_ProcType = []
+                    list_Unc_ProcType = []
+                    for iProcType in range(len(datasets)):  # loop in the proc_type_lists
+                    
+                        Hist_ProcType = np.zeros(len(bins)-1)
+                        Unc_ProcType = np.zeros(len(bins)-1)  # Stat. Uncertainty of Hist
+                        for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
+                            #print(systematics[iSource][0], iUniverse, iProcType, iProcDic)
+                            proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_"+str(systematics[iSource][0])+"_"+str(iUniverse)]
+                            Hist_raw = proc_dic["Hist"]
+                            Unc_raw = proc_dic["Unc"]
+                            Start_raw = proc_dic["Start"]
+                            End_raw = proc_dic["End"]
+                            Nbins_raw = proc_dic["Nbins"]
+                            Delta_raw = (End_raw - Start_raw)/Nbins_raw
+                    
+                            Hist_new = [0]*(len(bins)-1)
+                            Unc_new = [0]*(len(bins)-1)
+                                    
+                            for iRawBin in range(Nbins_raw):
+                                inf_raw = Start_raw + iRawBin*Delta_raw
+                                sup_raw = Start_raw + (iRawBin+1)*Delta_raw
+                                for iNewBin in range(len(Hist_new)):
+                                    if( (inf_raw >= bins[iNewBin]) and (sup_raw <= bins[iNewBin+1]) ):
+                                        Hist_new[iNewBin] = Hist_new[iNewBin] + Hist_raw[iRawBin]
+                                        Unc_new[iNewBin] = np.sqrt( Unc_new[iNewBin]**2 + Unc_raw[iRawBin]**2 )
+                    
+                            for iNewBin in range(len(Hist_new)):
+                                if Hist_new[iNewBin] < 0:
+                                    Hist_new[iNewBin] = 0
+                                    Unc_new[iNewBin] = 0
+                    
+                            Hist_ProcType = Hist_ProcType + np.array(Hist_new)
+                            Unc_ProcType = np.sqrt(Unc_ProcType**2 + np.array(Unc_new)**2)
+                       
+                        list_Hist_ProcType.append(Hist_ProcType)
+                        list_Unc_ProcType.append(Unc_ProcType)
+    
+                    if iUniverse == 0:
+                        list_Hist_ProcType_up = copy.deepcopy(list_Hist_ProcType)
+                        list_Unc_ProcType_up = copy.deepcopy(list_Unc_ProcType)
+                        list_Hist_ProcType_down = copy.deepcopy(list_Hist_ProcType)
+                        list_Unc_ProcType_down = copy.deepcopy(list_Unc_ProcType)
+                    else:
+                        for ihist in range(len(list_Hist_ProcType)):
+                            for ibin in range(len(list_Hist_ProcType[ihist])):
+                                if list_Hist_ProcType[ihist][ibin] > list_Hist_ProcType_up[ihist][ibin]:
+                                    list_Hist_ProcType_up[ihist][ibin] = list_Hist_ProcType[ihist][ibin]
+                                    list_Unc_ProcType_up[ihist][ibin] = list_Unc_ProcType[ihist][ibin]
+                                if list_Hist_ProcType[ihist][ibin] < list_Hist_ProcType_down[ihist][ibin]:
+                                    list_Hist_ProcType_down[ihist][ibin] = list_Hist_ProcType[ihist][ibin]
+                                    list_Unc_ProcType_down[ihist][ibin] = list_Unc_ProcType[ihist][ibin]
+                                    
+                
+                #----------------------------------------------------------------------------------
+                # Identify which ProcTypes have XS uncertainties
+                ProcType_has_XS_unc = [False]*len(datasets)
+                for iProcType in range(len(datasets)):  # loop in the proc_type_lists
+                    for jSource in self.XS_syst_list:
+                        universe_hists = []
+                        for iUniverse in range(2):
+                            Hist_ProcType = np.zeros(len(bins)-1)
+                            for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
+                                proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_"+str(systematics[jSource][0])+"_"+str(iUniverse)]
+                                Hist_raw = proc_dic["Hist"]
+                                Unc_raw = proc_dic["Unc"]
+                                Start_raw = proc_dic["Start"]
+                                End_raw = proc_dic["End"]
+                                Nbins_raw = proc_dic["Nbins"]
+                                Delta_raw = (End_raw - Start_raw)/Nbins_raw
+                        
+                                Hist_new = [0]*(len(bins)-1)
+                                Unc_new = [0]*(len(bins)-1)
+                                        
+                                for iRawBin in range(Nbins_raw):
+                                    inf_raw = Start_raw + iRawBin*Delta_raw
+                                    sup_raw = Start_raw + (iRawBin+1)*Delta_raw
+                                    for iNewBin in range(len(Hist_new)):
+                                        if( (inf_raw >= bins[iNewBin]) and (sup_raw <= bins[iNewBin+1]) ):
+                                            Hist_new[iNewBin] = Hist_new[iNewBin] + Hist_raw[iRawBin]
+                                            Unc_new[iNewBin] = np.sqrt( Unc_new[iNewBin]**2 + Unc_raw[iRawBin]**2 )
+                        
+                                for iNewBin in range(len(Hist_new)):
+                                    if Hist_new[iNewBin] < 0:
+                                        Hist_new[iNewBin] = 0
+                                        Unc_new[iNewBin] = 0
+                        
+                                Hist_ProcType = Hist_ProcType + np.array(Hist_new)
+                            
+                            universe_hists.append(Hist_ProcType)
+                            
+                        universe_differences = np.array(universe_hists[1]) - np.array(universe_hists[0])  
+                        if np.mean(universe_differences) != 0:
+                            ProcType_has_XS_unc[iProcType] = True
+                #print(ProcType_has_XS_unc)
+                
+                #----------------------------------------------------------------------------------
+                # Get the normalization factors from the nominal histograms
+                list_ProcType_sum = []
+                for iProcType in range(len(datasets)):  # loop in the proc_type_lists
+                    for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
+                        
+                        proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_0_0"]
+                        Hist_raw = proc_dic["Hist"]
+                        if iProcDic == 0:
+                            Hist_ProcType = np.array(Hist_raw)
+                        else:
+                            Hist_ProcType = Hist_ProcType + np.array(Hist_raw)
+                        
+                    list_ProcType_sum.append(Hist_ProcType.sum())
+        
+                #----------------------------------------------------------------------------------
+                # Get the normalization factors from the "Scales" histograms
+                list_Hist_ProcType_scales_up = []
+                list_Hist_ProcType_scales_down = []
+                for iUniverse in range(systematics[iSource][1]):  # loop in the universes
+                    list_Hist_ProcType = []
+                    for iProcType in range(len(datasets)):  # loop in the proc_type_lists
+                        for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
+                            proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_"+str(systematics[iSource][0])+"_"+str(iUniverse)]
+                            Hist_raw = proc_dic["Hist"]
+                            if iProcDic == 0:
+                                Hist_ProcType = np.array(Hist_raw)
+                            else:
+                                Hist_ProcType = Hist_ProcType + np.array(Hist_raw)
+                       
+                        list_Hist_ProcType.append(Hist_ProcType)
+    
+                    if iUniverse == 0:
+                        list_Hist_ProcType_scales_up = copy.deepcopy(list_Hist_ProcType)
+                        list_Hist_ProcType_scales_down = copy.deepcopy(list_Hist_ProcType)
+                    else:
+                        for ihist in range(len(list_Hist_ProcType)):
+                            for ibin in range(len(list_Hist_ProcType[ihist])):
+                                if list_Hist_ProcType[ihist][ibin] > list_Hist_ProcType_scales_up[ihist][ibin]:
+                                    list_Hist_ProcType_scales_up[ihist][ibin] = list_Hist_ProcType[ihist][ibin]
+                                if list_Hist_ProcType[ihist][ibin] < list_Hist_ProcType_scales_down[ihist][ibin]:
+                                    list_Hist_ProcType_scales_down[ihist][ibin] = list_Hist_ProcType[ihist][ibin]
+        
+                list_ProcType_scales_up_sum = []
+                list_ProcType_scales_down_sum = []
+                for iProcType in range(len(datasets)):  # loop in the proc_type_lists
+                    list_ProcType_scales_up_sum.append(list_Hist_ProcType_scales_up[iProcType].sum())
+                    list_ProcType_scales_down_sum.append(list_Hist_ProcType_scales_down[iProcType].sum())
+                #----------------------------------------------------------------------------------
+                
+                for iProcType in range(len(ProcType_has_XS_unc)):
+                    if ProcType_has_XS_unc[iProcType]:
+                        sf_up = list_ProcType_sum[iProcType]/list_ProcType_scales_up_sum[iProcType]
+                        sf_down = list_ProcType_sum[iProcType]/list_ProcType_scales_down_sum[iProcType]
+                        list_Hist_ProcType_down[iProcType] = list_Hist_ProcType_down[iProcType]*sf_down
+                        list_Hist_ProcType_up[iProcType] = list_Hist_ProcType_up[iProcType]*sf_up
+                
+                self.hist_table3D[systematics[iSource][0]] = [list_Hist_ProcType_down, list_Hist_ProcType_up]
+                self.unc_table3D[systematics[iSource][0]] = [list_Unc_ProcType_down, list_Unc_ProcType_up]
+
+                self.sys_IDs.append(systematics[iSource][0])
+                self.sys_labels.append(iSource)       
+    
+                
+            
 
         self.region = region
         self.var = var
@@ -168,6 +347,7 @@ class combine:
         self.colors = colors
         self.systematics = systematics
         self.ID_max = ID_max
+        self.N_sources = (ID_max+1) + 2  # including lumi and stat sources
         self.set_smooth_factor(smooth_factor)
         self.has_data = False
         self.has_signal = False
@@ -177,49 +357,86 @@ class combine:
 
         # Get smooth bins
         # Initialize bins (first index is source, and second index is process)
-        # Smoothing act in each list o processes separated
-        # The same bins are used for all systematics
-        self.smooth_bins_list = []    
-        for iProcess in range(self.number_ds_groups):
-            smooth_bins = [self.bins[0]] # set first limit for the smooth bins (equal to bins)
-            stat_unc = self.unc_table3D[0][0][iProcess][0]
-            count = self.hist_table3D[0][0][iProcess][0]
-            if count > 0:
-                frac_stat_unc = stat_unc/count
-            else:
-                frac_stat_unc = 1
-                    
-            for iBin in range(len(self.bins)-1):
-                if( (iBin < len(self.bins)-2) and (frac_stat_unc > smooth_factor) ):
-                    stat_unc = np.sqrt(stat_unc**2 + self.unc_table3D[0][0][iProcess][iBin + 1]**2)
-                    count = count + self.hist_table3D[0][0][iProcess][iBin + 1]
-                    if count > 0:
-                        frac_stat_unc = stat_unc/count
-                    else:
-                        frac_stat_unc = 1
-                elif( (iBin < len(self.bins)-2) and (frac_stat_unc <= smooth_factor) ):
-                    smooth_bins.append(self.bins[iBin + 1])
-                    stat_unc = self.unc_table3D[0][0][iProcess][iBin + 1]
-                    count = self.hist_table3D[0][0][iProcess][iBin + 1]
-                    if count > 0:
-                        frac_stat_unc = stat_unc/count
-                    else:
-                        frac_stat_unc = 1    
-                elif( (iBin == len(self.bins)-2) and (frac_stat_unc > smooth_factor) and (len(smooth_bins) > 1) ):
-                    smooth_bins[-1] = self.bins[-1]
-                else:
-                    smooth_bins.append(self.bins[-1])
-                        
-            self.smooth_bins_list.append(smooth_bins)  # different bins to each dataset group
         
-        self.smooth_bins = smooth_bins    
+        self.smooth_bins_list = []
+        for iSource in range(self.N_sources):
+            self.smooth_bins_list.append([self.bins]*self.number_ds_groups)
+            
+        self.create_tables()
+        
+        for iSource in range(self.N_sources):
+            if self.hist_table3D[iSource][0] != 0:
+                if( (iSource > 0) and (iSource < self.ID_max+1) ): # Systematics with smoothing
+                    for iProcess in range(self.number_ds_groups):
+                        
+                        sys_unc_mean_list = (np.abs(self.sys_unc_table3D[iSource][1][iProcess]) + np.abs(self.sys_unc_table3D[iSource][0][iProcess]))/2
+                        
+                        
+                        
+                        
+            
+            
+            
+                        
+                        sys_unc_mean_list = [i for i in sys_unc_mean_list if i != 0]
+                        if len(sys_unc_mean_list) == 0:
+                            smooth_cut = 0
+                        else:
+                            smooth_cut = smooth_factor*(sum(sys_unc_mean_list)/len(sys_unc_mean_list))
+                        #print(smooth_cut)
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+            
+                        smooth_bins = [self.bins[0]] # set first limit for the smooth bins (equal to bins)
+                        stat_unc = self.unc_table3D[0][0][iProcess][0]
+                        count = self.hist_table3D[0][0][iProcess][0]
+                        if count > 0:
+                            frac_stat_unc = stat_unc/count
+                        else:
+                            frac_stat_unc = 1
+                        
+                        for iBin in range(len(self.bins)-1):
+                            if( (iBin < len(self.bins)-2) and (frac_stat_unc > smooth_cut) ):
+                                stat_unc = np.sqrt(stat_unc**2 + self.unc_table3D[0][0][iProcess][iBin + 1]**2)
+                                count = count + self.hist_table3D[0][0][iProcess][iBin + 1]
+                                if count > 0:
+                                    frac_stat_unc = stat_unc/count
+                                else:
+                                    frac_stat_unc = 1
+                            elif( (iBin < len(self.bins)-2) and (frac_stat_unc <= smooth_cut) ):
+                                smooth_bins.append(self.bins[iBin + 1])
+                                stat_unc = self.unc_table3D[0][0][iProcess][iBin + 1]
+                                count = self.hist_table3D[0][0][iProcess][iBin + 1]
+                                if count > 0:
+                                    frac_stat_unc = stat_unc/count
+                                else:
+                                    frac_stat_unc = 1    
+                            elif( (iBin == len(self.bins)-2) and (frac_stat_unc > smooth_cut) and (len(smooth_bins) > 1) ):
+                                smooth_bins[-1] = self.bins[-1]
+                            else:
+                                smooth_bins.append(self.bins[-1])
+                                    
+                        self.smooth_bins_list[iSource][iProcess] = smooth_bins  # different bins to each sys_source and dataset group
+        
         self.create_tables()
         
     #==============================================================================================================
     def show_smooth_bins(self):
         ds_list = []
-        for i in range(self.number_ds_groups):
-            ds_list.append({ "Datasets": self.labels[i], "Smooth bins": self.smooth_bins_list[i] })
+        for iSource in range(self.N_sources):
+            if self.hist_table3D[iSource][0] != 0:
+                if( (iSource > 0) and (iSource < self.ID_max+1) ): # Systematics with smoothing
+                    for Source in self.systematics.keys():
+                        if iSource == self.systematics[Source][0]:
+                            for iProcess in range(self.number_ds_groups):
+                                ds_list.append({ "Systematic": Source,  "Datasets": self.labels[iProcess], "Smooth bins": self.smooth_bins_list[iSource][iProcess] })
+        
         ds_list = pd.DataFrame(ds_list)
         print(ds_list)
         
@@ -227,25 +444,23 @@ class combine:
     #==============================================================================================================
     def create_tables(self):
 
-        N_sources = (self.ID_max+1) + 2  # including lumi and stat sources 
-    
         #Initialize systematic table3D (first index is source, second index is universe, and third index is process)
         self.sys_unc_table3D = []    # Use in Combine datacards
-        for i in range(N_sources):
+        for i in range(self.N_sources):
             self.sys_unc_table3D.append([[], []])
     
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if iSource > 0: 
                 for iUniverse in range(2): # The name universe is used here but it only represents the up and down variations after universes combination
                     for iProcess in range(self.number_ds_groups):
                         self.sys_unc_table3D[iSource][iUniverse].append(np.zeros(len(self.bins)-1))
                 
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if( (iSource > 0) and (iSource < self.ID_max+1) ): # Systematics with smoothing
                     for iUniverse in range(2):
                         for iProcess in range(self.number_ds_groups):     
-                            self.smooth_bins = self.smooth_bins_list[iProcess]
+                            self.smooth_bins = self.smooth_bins_list[iSource][iProcess]
                             for isBin in range(len(self.smooth_bins)-1):
                                 combined_sys = 0
                                 combined_cv = 0
@@ -271,13 +486,13 @@ class combine:
         #Initialize systematic table2D (first index is source, second index is universe)
         self.hist_table2D = []                   
         self.sys_unc_table2D = []    # Use in Fractional plot
-        for i in range(N_sources):
+        for i in range(self.N_sources):
             self.hist_table2D.append([0, 0])
             self.sys_unc_table2D.append([np.zeros(len(self.bins)-1), np.zeros(len(self.bins)-1)])
 
     
         # Filling hist_table2D
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if iSource == 0:
                     for iProcess in range(self.number_ds_groups):
@@ -293,7 +508,7 @@ class combine:
                             elif iProcess > 0 :
                                 self.hist_table2D[iSource][iUniverse] = self.hist_table2D[iSource][iUniverse] + self.hist_table3D[iSource][iUniverse][iProcess]
 
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if iSource > 0: 
                     for iUniverse in range(2):
@@ -304,7 +519,7 @@ class combine:
     
         #--------------------------------------------------------------------------------
         # Transform uncertainties in fractional uncertainties
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if iSource > 0: 
                     for iUniverse in range(2):
@@ -315,7 +530,7 @@ class combine:
                                 else: 
                                     self.sys_unc_table3D[iSource][iUniverse][iProcess][iBin] = 0
                             
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if iSource > 0: 
                     for iUniverse in range(2):
@@ -330,7 +545,7 @@ class combine:
         self.sys_total_unc_up = np.zeros(len(self.bins)-1)
         self.sys_total_unc_down = np.zeros(len(self.bins)-1)
             
-        for iSource in range(N_sources):
+        for iSource in range(self.N_sources):
             if self.hist_table3D[iSource][0] != 0:
                 if iSource > 0: 
                     for iUniverse in range(2):
@@ -380,20 +595,113 @@ class combine:
             self.hist_data = self.hist_data + np.array(Hist_new)
             self.unc_data = np.sqrt(self.unc_data**2 + np.array(Unc_new)**2)
     
+    #==============================================================================================================
+    def set_signal(self, signal_group):
+        
+        self.has_signal = True
+        
+        #Initialize data histograms
+        self.hist_signal = np.zeros(len(self.bins)-1)                  
+        self.unc_signal = np.zeros(len(self.bins)-1)
+            
+        for iProcDic in range(len(signal_group)):  # loop in the proc_dictionaries inside the lists
+            proc_dic = signal_group[iProcDic][self.var+"_"+str(self.region)+"_0_0"]
+            Hist_raw = proc_dic["Hist"]
+            Unc_raw = proc_dic["Unc"]
+            Start_raw = proc_dic["Start"]
+            End_raw = proc_dic["End"]
+            Nbins_raw = proc_dic["Nbins"]
+            Delta_raw = (End_raw - Start_raw)/Nbins_raw
+                
+            Hist_new = [0]*(len(self.bins)-1)
+            Unc_new = [0]*(len(self.bins)-1)
+                                    
+            for iRawBin in range(Nbins_raw):
+                inf_raw = Start_raw + iRawBin*Delta_raw
+                sup_raw = Start_raw + (iRawBin+1)*Delta_raw
+                for iNewBin in range(len(Hist_new)):
+                    if( (inf_raw >= self.bins[iNewBin]) and (sup_raw <= self.bins[iNewBin+1]) ):
+                        Hist_new[iNewBin] = Hist_new[iNewBin] + Hist_raw[iRawBin]
+                        Unc_new[iNewBin] = np.sqrt( Unc_new[iNewBin]**2 + Unc_raw[iRawBin]**2 )
+                    
+            for iNewBin in range(len(Hist_new)):
+                if Hist_new[iNewBin] < 0:
+                    Hist_new[iNewBin] = 0
+                    Unc_new[iNewBin] = 0
+                    
+            self.hist_signal = self.hist_signal + np.array(Hist_new)
+            self.unc_signal = np.sqrt(self.unc_signal**2 + np.array(Unc_new)**2)
     
     #==============================================================================================================
-    def frac_syst_plot(self, ax):
+    def frac_syst_plot(self, ax, version=1):
         
-        hist_up = np.insert(self.sys_total_unc_up, 0, self.sys_total_unc_up[0], axis=0)
-        hist_down = np.insert(self.sys_total_unc_down, 0, self.sys_total_unc_down[0], axis=0)
-        plt.step(self.bins, hist_up, label="Total", color="black", linewidth=0.8 )
-        plt.step(self.bins, hist_down, linestyle="--", color="black", linewidth=0.8 )
+        if version == 2:
+            plt.axhline(0, color='black', linewidth=1)
+            hist_up = np.insert(self.sys_total_unc_up, 0, self.sys_total_unc_up[0], axis=0)
+            hist_down = np.insert(self.sys_total_unc_down, 0, self.sys_total_unc_down[0], axis=0)
+            plt.step(self.bins, hist_up, label="Total", color="black", linewidth=0.8 )
+            plt.step(self.bins, hist_down, linestyle="--", color="black", linewidth=0.8 )
         
-        for i in range(len(self.sys_IDs)):
-            hist_up = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][1], 0, self.sys_unc_table2D[self.sys_IDs[i]][1][0], axis=0)
-            hist_down = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][0], 0, self.sys_unc_table2D[self.sys_IDs[i]][0][0], axis=0)
-            plt.step(self.bins, hist_up, label=self.sys_labels[i], color=self.sys_colors[i], linewidth=0.8 )
-            plt.step(self.bins, hist_down, linestyle="--", color=self.sys_colors[i], linewidth=0.8 )
+            for i in range(len(self.sys_IDs)):
+                hist_up = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][1], 0, self.sys_unc_table2D[self.sys_IDs[i]][1][0], axis=0)
+                hist_down = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][0], 0, self.sys_unc_table2D[self.sys_IDs[i]][0][0], axis=0)
+                plt.step(self.bins, hist_up, label=self.sys_labels[i], color=self.sys_colors[i], linewidth=1 )
+                plt.step(self.bins, hist_down, linestyle="--", color=self.sys_colors[i], linewidth=1 )
+
+        if version == 1:
+            x = np.array(self.bins)
+            dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
+            x = x[:-1]
+            sys_total_unc_mean = (np.abs(self.sys_total_unc_up) + np.abs(self.sys_total_unc_down))/2
+            sys_total_unc_sgn = self.sys_total_unc_up + self.sys_total_unc_down
+            hist_mean = np.insert(sys_total_unc_mean, 0, sys_total_unc_mean[0], axis=0) 
+            hist_up = np.insert(self.sys_total_unc_up, 0, self.sys_total_unc_up[0], axis=0)
+            hist_down = np.insert(self.sys_total_unc_down, 0, self.sys_total_unc_down[0], axis=0)
+            plt.step(self.bins, hist_mean, label="Total", color="black", linewidth=1)
+            for ix in range(len(x)):
+                if hist_up[1:][ix] > 0 and (sys_total_unc_sgn[ix] > 0 or np.abs(sys_total_unc_sgn[ix] - 0) < 0.0001):
+                    plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='^', color="black", markerfacecolor='black')
+                elif hist_up[1:][ix] > 0 and (sys_total_unc_sgn[ix] < 0 and np.abs(sys_total_unc_sgn[ix] - 0) > 0.0001):
+                    plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='^', color="black", markerfacecolor='white')
+                elif hist_up[1:][ix] < 0 and (sys_total_unc_sgn[ix] > 0 or np.abs(sys_total_unc_sgn[ix] - 0) < 0.0001):
+                    plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='v', color="black", markerfacecolor='black')
+                elif hist_up[1:][ix] < 0 and (sys_total_unc_sgn[ix] < 0 and np.abs(sys_total_unc_sgn[ix] - 0) > 0.0001):
+                    plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='v', color="black", markerfacecolor='white')
+            height = np.abs(np.abs(hist_up[1:])-np.abs(hist_down[1:]))
+            bottom = np.minimum(np.abs(hist_down[1:]), np.abs(hist_up[1:]))
+            plt.bar(x=self.bins[:-1], height=height, bottom=bottom, width=np.diff(self.bins), align='edge', linewidth=0, color='black', alpha=0.2, zorder=-1)
+            
+            for i in range(len(self.sys_IDs)):
+                sys_unc_mean = (np.abs(self.sys_unc_table2D[self.sys_IDs[i]][1]) + np.abs(self.sys_unc_table2D[self.sys_IDs[i]][0]))/2
+                sys_unc_sgn = self.sys_unc_table2D[self.sys_IDs[i]][1] + self.sys_unc_table2D[self.sys_IDs[i]][0]
+                hist_mean = np.insert(sys_unc_mean, 0, sys_unc_mean[0], axis=0) 
+                hist_up = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][1], 0, self.sys_unc_table2D[self.sys_IDs[i]][1][0], axis=0)
+                hist_down = np.insert(self.sys_unc_table2D[self.sys_IDs[i]][0], 0, self.sys_unc_table2D[self.sys_IDs[i]][0][0], axis=0)
+                #print(np.abs(hist_down[1:]))
+                #print(hist_mean[1:])
+                #print(np.abs(hist_up[1:]))
+                #print("")
+                
+                syst_name = self.sys_labels[i]
+                sys_color=self.sys_colors[i]
+                if( syst_name == "PDF" or syst_name == "AlphaS"  or syst_name == "Scales"  or syst_name == "ISR"  or syst_name == "FSR"  or syst_name[-2:] == "XS" ):
+                    linestyle="--"
+                else:
+                    linestyle="-"
+
+                plt.step(self.bins, hist_mean, label=self.sys_labels[i], color=sys_color, linewidth=1, linestyle=linestyle )
+                for ix in range(len(x)):
+                    if hist_up[1:][ix] > 0 and (sys_unc_sgn[ix] > 0 or np.abs(sys_unc_sgn[ix] - 0) < 0.0001):
+                        plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='^', color=sys_color, markerfacecolor=sys_color, zorder=100+i)
+                    elif hist_up[1:][ix] > 0 and (sys_unc_sgn[ix] < 0 and np.abs(sys_unc_sgn[ix] - 0) > 0.0001):
+                        plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='^', color=sys_color, markerfacecolor='white', zorder=100+i)
+                    elif hist_up[1:][ix] < 0 and (sys_unc_sgn[ix] > 0 or np.abs(sys_unc_sgn[ix] - 0) < 0.0001):
+                        plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='v', color=sys_color, markerfacecolor=sys_color, zorder=100+i)
+                    elif hist_up[1:][ix] < 0 and (sys_unc_sgn[ix] < 0 and np.abs(sys_unc_sgn[ix] - 0) > 0.0001):
+                        plt.plot(x[ix]+0.5*dx[ix], hist_mean[1:][ix], linewidth=0, marker='v', color=sys_color, markerfacecolor='white', zorder=100+i)
+                height = np.abs(np.abs(hist_up[1:])-np.abs(hist_down[1:]))
+                bottom = np.minimum(np.abs(hist_down[1:]), np.abs(hist_up[1:]))
+                plt.bar(x=self.bins[:-1], height=height, bottom=bottom, width=np.diff(self.bins), align='edge', linewidth=0, color=sys_color, alpha=0.25, zorder=-2+i)
 
     #==============================================================================================================
     def stacked_plot(self, ax):
@@ -476,290 +784,29 @@ class combine:
         else:
             print("Error: data is not set!")
 
-"""
-#======================================================================================================================
-def stacked_sys_plot( ax1, region, var, datasets, labels, colors, systematics, bins, smooth_factor=0.05 ):
-    
-    # Get maximum source ID:
-    ID_max = 0
-    for iSource in systematics.keys():
-        ID = systematics[iSource][0]
-        if ID_max < ID:
-            ID_max = ID
-    
-    #Initialize tables (first index is source ID, second index is universe, and third index is process)
-    Hist_table3D = []
-    Unc_table3D = []       # Statistical unc. in the histograms
-    for i in range(ID_max+1):
-        Hist_table3D.append([0, 0])
-        Unc_table3D.append([0, 0])
+    #==============================================================================================================
+    def signal_plot(self, ax):
         
-    
-    for iSource in systematics.keys():    # loop in the systematic sources
-        #--------------------------------------------------------------------------------
-        if iSource == "CV":  
+        if self.has_signal:
+            x = np.array(self.bins)
+            dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
+            x = x[:-1]
             
-            list_Hist_ProcType = []
-            list_Unc_ProcType = []
+            ext_hist_signal = np.append([self.hist_signal[0]], self.hist_signal)
             
-            # Luminosity uncertainty 
-            list_Hist_ProcType_lumi_up = []
-            list_Hist_ProcType_lumi_down = []
-                    
-            # Statistical uncertainty 
-            list_Hist_ProcType_stat_up = []
-            list_Hist_ProcType_stat_down = []
+            plt.step(self.bins, ext_hist_signal, color="blue", label="Signal", linewidth=1.5)
             
-            for iProcType in range(len(datasets)):  # loop in the proc_type_lists
-                
-                Hist_ProcType = np.zeros(len(bins)-1)
-                Unc_ProcType = np.zeros(len(bins)-1)  # Stat. Uncertainty of Hist
-                for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
-                    proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_0_0"]
-                    Hist_raw = proc_dic["Hist"]
-                    Unc_raw = proc_dic["Unc"]
-                    Start_raw = proc_dic["Start"]
-                    End_raw = proc_dic["End"]
-                    Nbins_raw = proc_dic["Nbins"]
-                    LumiUnc = proc_dic["LumiUnc"]*0.01
-                    Delta_raw = (End_raw - Start_raw)/Nbins_raw
-                    
-                    Hist_new = [0]*(len(bins)-1)
-                    Unc_new = [0]*(len(bins)-1)
-                                    
-                    for iRawBin in range(Nbins_raw):
-                        inf_raw = Start_raw + iRawBin*Delta_raw
-                        sup_raw = Start_raw + (iRawBin+1)*Delta_raw
-                        for iNewBin in range(len(Hist_new)):
-                            if( (inf_raw >= bins[iNewBin]) and (sup_raw <= bins[iNewBin+1]) ):
-                                Hist_new[iNewBin] = Hist_new[iNewBin] + Hist_raw[iRawBin]
-                                Unc_new[iNewBin] = np.sqrt( Unc_new[iNewBin]**2 + Unc_raw[iRawBin]**2 )
-                    
-                    for iNewBin in range(len(Hist_new)):
-                        if Hist_new[iNewBin] < 0:
-                            Hist_new[iNewBin] = 0
-                            Unc_new[iNewBin] = 0
-                    
-                    Hist_ProcType = Hist_ProcType + np.array(Hist_new)
-                    Unc_ProcType = np.sqrt(Unc_ProcType**2 + np.array(Unc_new)**2)
-                
-                list_Hist_ProcType.append(Hist_ProcType)
-                list_Unc_ProcType.append(Unc_ProcType)    
-                    
-                # Luminosity uncertainty 
-                Hist_ProcType_lumi_up = Hist_ProcType*(1 + LumiUnc)
-                Hist_ProcType_lumi_down = Hist_ProcType*(1 - LumiUnc)
-                list_Hist_ProcType_lumi_up.append(Hist_ProcType_lumi_up)
-                list_Hist_ProcType_lumi_down.append(Hist_ProcType_lumi_down)    
-                    
-                # Statistical uncertainty 
-                Hist_ProcType_stat_up = Hist_ProcType + Unc_ProcType
-                Hist_ProcType_stat_down = Hist_ProcType - Unc_ProcType
-                list_Hist_ProcType_stat_up.append(Hist_ProcType_stat_up)
-                list_Hist_ProcType_stat_down.append(Hist_ProcType_stat_down)
-                
-                
-            Hist_table3D[0][0] = list_Hist_ProcType
-            Unc_table3D[0][0] = list_Unc_ProcType
+            ax.errorbar(
+                x+0.5*dx, 
+                self.hist_signal, 
+                yerr=[self.unc_signal, self.unc_signal], 
+                fmt=',', 
+                color="blue",
+                elinewidth=1
+            )  
             
-            Hist_table3D.append([list_Hist_ProcType_lumi_down, list_Hist_ProcType_lumi_up])  
-            Hist_table3D.append([list_Hist_ProcType_stat_down, list_Hist_ProcType_stat_up])
-            # It's not necessary to get stat. unc. for lumi and stat. histograms. It is used for the smoothing of histograms.
-        
-        #--------------------------------------------------------------------------------
-        elif( (iSource == "JES") or (iSource == "Pileup") or (iSource == "LeptonID") ):  
-            
-            for iUniverse in range(2):  # loop in the universes
-                list_Hist_ProcType = []
-                list_Unc_ProcType = []
-                for iProcType in range(len(datasets)):  # loop in the proc_type_lists
-                
-                    Hist_ProcType = np.zeros(len(bins)-1)
-                    Unc_ProcType = np.zeros(len(bins)-1)  # Stat. Uncertainty of Hist
-                    for iProcDic in range(len(datasets[iProcType])):  # loop in the proc_dictionaries inside the lists
-                        print(systematics[iSource][0], iUniverse, iProcType, iProcDic)
-                        proc_dic = datasets[iProcType][iProcDic][var+"_"+str(region)+"_"+str(systematics[iSource][0])+"_"+str(iUniverse)]
-                        Hist_raw = proc_dic["Hist"]
-                        Unc_raw = proc_dic["Unc"]
-                        Start_raw = proc_dic["Start"]
-                        End_raw = proc_dic["End"]
-                        Nbins_raw = proc_dic["Nbins"]
-                        Delta_raw = (End_raw - Start_raw)/Nbins_raw
-                    
-                        Hist_new = [0]*(len(bins)-1)
-                        Unc_new = [0]*(len(bins)-1)
-                                    
-                        for iRawBin in range(Nbins_raw):
-                            inf_raw = Start_raw + iRawBin*Delta_raw
-                            sup_raw = Start_raw + (iRawBin+1)*Delta_raw
-                            for iNewBin in range(len(Hist_new)):
-                                if( (inf_raw >= bins[iNewBin]) and (sup_raw <= bins[iNewBin+1]) ):
-                                    Hist_new[iNewBin] = Hist_new[iNewBin] + Hist_raw[iRawBin]
-                                    Unc_new[iNewBin] = np.sqrt( Unc_new[iNewBin]**2 + Unc_raw[iRawBin]**2 )
-                    
-                        for iNewBin in range(len(Hist_new)):
-                            if Hist_new[iNewBin] < 0:
-                                Hist_new[iNewBin] = 0
-                                Unc_new[iNewBin] = 0
-                    
-                        Hist_ProcType = Hist_ProcType + np.array(Hist_new)
-                        Unc_ProcType = np.sqrt(Unc_ProcType**2 + np.array(Unc_new)**2)
-                       
-                    list_Hist_ProcType.append(Hist_ProcType)
-                    list_Unc_ProcType.append(Unc_ProcType)
-        
-                Hist_table3D[systematics[iSource][0]][iUniverse] = list_Hist_ProcType
-                Unc_table3D[systematics[iSource][0]][iUniverse] = list_Unc_ProcType
-    
-
-    #=======================================================================================================================
-    # Get smooth bins
-    # Initialize bins (first index is source, and second index is process)
-    # Smoothing act in each list o processes separated
-    # The same bins are used for all systematics
-    smooth_bins_list = []    # different bins to each dataset group
-    for iProcess in range(len(datasets)):
-        smooth_bins = [bins[0]] # set first limit for the smooth bins (equal to bins)
-        stat_unc = Unc_table3D[0][0][iProcess][0]
-        count = Hist_table3D[0][0][iProcess][0]
-        if count > 0:
-            frac_stat_unc = stat_unc/count
+            return self.hist_signal, self.unc_signal
         else:
-            frac_stat_unc = 1
-                    
-        for iBin in range(len(bins)-1):
-            if( (iBin < len(bins)-2) and (frac_stat_unc > smooth_factor) ):
-                stat_unc = np.sqrt(stat_unc**2 + Unc_table3D[0][0][iProcess][iBin + 1]**2)
-                count = count + Hist_table3D[0][0][iProcess][iBin + 1]
-                if count > 0:
-                    frac_stat_unc = stat_unc/count
-                else:
-                    frac_stat_unc = 1
-            elif( (iBin < len(bins)-2) and (frac_stat_unc <= smooth_factor) ):
-                smooth_bins.append(bins[iBin + 1])
-                stat_unc = Unc_table3D[0][0][iProcess][iBin + 1]
-                count = Hist_table3D[0][0][iProcess][iBin + 1]
-                if count > 0:
-                    frac_stat_unc = stat_unc/count
-                else:
-                    frac_stat_unc = 1    
-            elif( (iBin == len(bins)-2) and (frac_stat_unc > smooth_factor) and (len(smooth_bins) > 1) ):
-                smooth_bins[-1] = bins[-1]
-            else:
-                smooth_bins.append(bins[-1])
-                        
-                        
-        smooth_bins_list.append(smooth_bins)
-                            
-    print(smooth_bins_list)
-    
-    #=======================================================================================================================  
-    N_sources = (ID_max+1) + 2  # including lumi and stat sources 
-    
-    #Initialize systematic table3D (first index is source, second index is universe, and third index is process)
-    sys_Unc_table3D = []    # Use in Combine
-    for i in range(N_sources):
-        sys_Unc_table3D.append([[], []])
-    
-    for iSource in range(N_sources):
-        if iSource > 0: 
-            for iUniverse in range(2): # The name universe is used here but it only represents the up and down variations after universes combination
-                for iProcess in range(len(datasets)):
-                    sys_Unc_table3D[iSource][iUniverse].append(np.zeros(len(bins)-1))
-                
-    
-    for iSource in range(N_sources):
-        if Hist_table3D[iSource][0] != 0:
-            if( (iSource > 0) and (iSource < ID_max+1) ): # Systematics with smoothing
-                for iUniverse in range(2):
-                    for iProcess in range(len(datasets)):     
-                        smooth_bins = smooth_bins_list[iProcess]
-                        for isBin in range(len(smooth_bins)-1):
-                            combined_sys = 0
-                            combined_cv = 0
-                            for iBin in range(len(bins)-1):
-                                if( (bins[iBin] >= smooth_bins[isBin]) and (bins[iBin+1] <= smooth_bins[isBin+1]) ):
-                                    combined_sys += Hist_table3D[iSource][iUniverse][iProcess][iBin]
-                                    combined_cv += Hist_table3D[0][0][iProcess][iBin]
-                            if combined_cv > 0:
-                                frac_comb_variation = (combined_sys - combined_cv)/combined_cv
-                            else:
-                                frac_comb_variation = 0
-                            for iBin in range(len(bins)-1):
-                                if( (bins[iBin] >= smooth_bins[isBin]) and (bins[iBin+1] <= smooth_bins[isBin+1]) ):
-                                    sys_Unc_table3D[iSource][iUniverse][iProcess][iBin] = Hist_table3D[0][0][iProcess][iBin]*frac_comb_variation
-            elif( iSource >= ID_max+1 ):   # Lumi and Stat systematics 
-                for iUniverse in range(2):
-                    for iProcess in range(len(datasets)):
-                        for iBin in range(len(bins)-1):
-                            sys_Unc_table3D[iSource][iUniverse][iProcess][iBin] = Hist_table3D[iSource][iUniverse][iProcess][iBin] - Hist_table3D[0][0][iProcess][iBin]
-                        
-                
-    
-    
-    #=======================================================================================================================            
-    #Initialize systematic table2D (first index is source, second index is universe)
-    Hist_table2D = []                   
-    sys_Unc_table2D = []    # Use in Fractional plot
-    for i in range(N_sources):
-        Hist_table2D.append([0, 0])
-        sys_Unc_table2D.append([np.zeros(len(bins)-1), np.zeros(len(bins)-1)])
-
-    
-    # Filling Hist_table2D
-    for iSource in range(N_sources):
-        if Hist_table3D[iSource][0] != 0:
-            if iSource == 0:
-                for iProcess in range(len(datasets)):
-                    if iProcess == 0 :
-                        Hist_table2D[0][0] = Hist_table3D[0][0][iProcess]
-                    elif iProcess > 0 :
-                        Hist_table2D[0][0] = Hist_table2D[0][0] + Hist_table3D[0][0][iProcess]
-            if iSource > 0: 
-                for iUniverse in range(2):
-                    for iProcess in range(len(datasets)):
-                        if iProcess == 0 :
-                            Hist_table2D[iSource][iUniverse] = Hist_table3D[iSource][iUniverse][iProcess]
-                        elif iProcess > 0 :
-                            Hist_table2D[iSource][iUniverse] = Hist_table2D[iSource][iUniverse] + Hist_table3D[iSource][iUniverse][iProcess]
-
-    for iSource in range(N_sources):
-        if Hist_table3D[iSource][0] != 0:
-            if iSource > 0: 
-                for iUniverse in range(2):
-                    for iProcess in range(len(datasets)):
-                        sys_Unc_table2D[iSource][iUniverse] = sys_Unc_table2D[iSource][iUniverse] + sys_Unc_table3D[iSource][iUniverse][iProcess]
-    
-    
-    #=======================================================================================================================
-    # Transform uncertainties in fractional uncertainties
-    for iSource in range(N_sources):
-        if Hist_table3D[iSource][0] != 0:
-            if iSource > 0: 
-                for iUniverse in range(2):
-                    for iProcess in range(len(datasets)):
-                        for iBin in range(len(bins)-1):
-                            if Hist_table3D[0][0][iProcess][iBin] > 0:
-                                sys_Unc_table3D[iSource][iUniverse][iProcess][iBin] = sys_Unc_table3D[iSource][iUniverse][iProcess][iBin]/Hist_table3D[0][0][iProcess][iBin]
-                            else: 
-                                sys_Unc_table3D[iSource][iUniverse][iProcess][iBin] = 0
-                            
-    for iSource in range(N_sources):
-        if Hist_table3D[iSource][0] != 0:
-            if iSource > 0: 
-                for iUniverse in range(2):
-                    for iBin in range(len(bins)-1):
-                        if Hist_table2D[0][0][iBin] > 0:
-                            sys_Unc_table2D[iSource][iUniverse][iBin] = sys_Unc_table2D[iSource][iUniverse][iBin]/Hist_table2D[0][0][iBin]
-                        else: 
-                            sys_Unc_table2D[iSource][iUniverse][iBin] = 0
-   
-    
-   
-    return Hist_table2D[0][0], Hist_table3D[0][0], sys_Unc_table2D, sys_Unc_table3D
-    
-"""    
-  
-    
-    
-
+            print("Error: data is not set!")
+            
+            
