@@ -1,1 +1,1 @@
-pip3 install ./dist/anatools-1.0.7.tar.gz
+pip3 install ./dist/anatools-1.0.8.tar.gz

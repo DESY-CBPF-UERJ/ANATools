@@ -40,8 +40,13 @@ class combine:
         
         self.sys_IDs = []
         self.sys_labels = []
-        self.sys_colors = ["dimgrey", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine"]                   
-    
+        self.sys_colors = ["dimgrey", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine"]  
+        
+        for iProcType in range(len(datasets)):
+            item_type = type(datasets[iProcType]).__name__
+            if item_type != "list": 
+                datasets[iProcType] = [datasets[iProcType]]
+        
         for iSource in systematics.keys():    # loop in the systematic sources
             #--------------------------------------------------------------------------------
             if iSource == "CV":  
@@ -561,6 +566,10 @@ class combine:
     #==============================================================================================================
     def set_data(self, data_group):
         
+        item_type = type(data_group).__name__
+        if item_type != "list": 
+            data_group = [data_group]
+        
         self.has_data = True
         
         #Initialize data histograms
@@ -597,6 +606,10 @@ class combine:
     
     #==============================================================================================================
     def set_signal(self, signal_group):
+        
+        item_type = type(signal_group).__name__
+        if item_type != "list": 
+            signal_group = [signal_group]
         
         self.has_signal = True
         
