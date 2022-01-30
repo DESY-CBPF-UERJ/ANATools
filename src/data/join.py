@@ -2,17 +2,27 @@ import os
 import pandas as pd
 import numpy as np
 
-def join_datasets(datasets_list):
+def join_datasets(ds, new_name, input_list):
 
-    items_type = type(datasets_list[0]).__name__
+    items_type = type(ds[input_list[0]]).__name__
     
+    datasets_list = []
+    for input_name in input_list:
+        datasets_list.append(ds[input_name])
+
+    good_list = False
     if items_type == "DataFrame":
-        datasets_joined = pd.concat(datasets_list).reset_index(drop=True)
+        ds[new_name] = pd.concat(datasets_list).reset_index(drop=True)
+        good_list = True
     elif items_type == "dict":
-        datasets_joined = datasets_list
+        ds[new_name] = datasets_list
+        good_list = True
     else:
-        datasets_joined = []
         print("Type of the items is not supported!")
     
-    return datasets_joined
+    if good_list:
+        for input_name in input_list:
+            del ds[input_name]
+    
+    del datasets_list
         
