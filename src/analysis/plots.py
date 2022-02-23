@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.patches as pat
 from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm 
+import statsmodels.stats.proportion as prop
 
 #from ..statistic import get_interval, pdf_efficiency
 
@@ -241,9 +242,7 @@ def __bayesian(y_before, y_after, yratio):
     return ye_below, ye_above
 
 
-def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="bayesian", multiprocess=True, overflow=False, underflow=False ):
-    
-    weight=None # weight was removed from the argument list because the method to calculate uncertainties only considers cases where the events have a weight equal to 1.  
+def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="clopper", multiprocess=True, overflow=False, underflow=False, weight=None ):
     
     ax.set_ylim([0,1.05])
     plt.axhline(1, color='grey', linewidth=1, linestyle="dotted")
@@ -262,6 +261,7 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
        
     
     dataframe_selected = dataframe[dataframe[bit] == 1]
+    dataframe_not_selected = dataframe[dataframe[bit] == 0]
     
     # overflow and underflow are not working with histograms=True
     eff_bins = bins[:]
@@ -284,6 +284,10 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
         else:
             y_before, bins_not_use = np.histogram( dataframe[var], eff_bins, weights=dataframe[weight] )
             y_after, bins_not_use = np.histogram( dataframe_selected[var], eff_bins, weights=dataframe_selected[weight] ) 
+        y_not_after, bins_not_use = np.histogram( dataframe_not_selected[var], eff_bins, weights=dataframe_not_selected[weight] ) 
+        y2_not_after, bins_not_use = np.histogram( dataframe_not_selected[var], eff_bins, weights=dataframe_not_selected[weight]*dataframe_not_selected[weight] )
+        y2_before, bins_not_use = np.histogram( dataframe[var], eff_bins, weights=dataframe[weight]*dataframe[weight] )
+        y2_after, bins_not_use = np.histogram( dataframe_selected[var], eff_bins, weights=dataframe_selected[weight]*dataframe_selected[weight] )
             
     
     yratio = np.zeros(y_after.size)
@@ -297,57 +301,109 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
                 yratio[i] = 1
             yeratio_binomial[i] = np.sqrt((y_after[i]/y_before[i])*(1-y_after[i]/y_before[i])*(1/y_before[i])) # binomial uncertainty
     
-    if uncertainty == "bayesian":
-
-        if multiprocess is True:
-
-            cpu_count = multiprocessing.cpu_count()
-            if cpu_count <= 2:
-                cpu_count = 1
-            else:
-                cpu_count -= 2
-
-            with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
-                jobs = list(tqdm(executor.map(__bayesian, y_before, y_after, yratio), total=len(y_before)))
-                jobs_result = [j for j in jobs]
-
-            ye_below = np.array([job[0] for job in jobs_result])
-            ye_above = np.array([job[1] for job in jobs_result])
-
-        else:
+    if weight is None:
+        if uncertainty == "binomial":
+            ye_below = yeratio_binomial
+            ye_above = yeratio_binomial
         
-            y_below = np.zeros(len(y_before))
-            y_above = np.zeros(len(y_before))
-            ye_below = np.zeros(len(y_before))
-            ye_above = np.zeros(len(y_before))
+        elif uncertainty == "bayesian":
+
+            if multiprocess is True:
+
+                cpu_count = multiprocessing.cpu_count()
+                if cpu_count <= 2:
+                    cpu_count = 1
+                else:
+                    cpu_count -= 2
+
+                with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
+                    jobs = list(tqdm(executor.map(__bayesian, y_before, y_after, yratio), total=len(y_before)))
+                    jobs_result = [j for j in jobs]
+
+                ye_below = np.array([job[0] for job in jobs_result])
+                ye_above = np.array([job[1] for job in jobs_result])
+
+            else:
+            
+                y_below = np.zeros(len(y_before))
+                y_above = np.zeros(len(y_before))
+                ye_below = np.zeros(len(y_before))
+                ye_above = np.zeros(len(y_before))
+                        
+                for i in tqdm(range(len(y_before))):
+                    if y_before[i] == 0:
+                        ye_below[i] = 0
+                        ye_above[i] = 0
+                        continue
                     
-            for i in tqdm(range(len(y_before))):
+                    if y_before[i] > 5000:
+                        x_grid = np.linspace(0,1,50001)
+                    elif y_before[i] > 1000:
+                        x_grid = np.linspace(0,1,20001)
+                    elif y_before[i] > 500:
+                        x_grid = np.linspace(0,1,5001)
+                    elif y_before[i] > 100:
+                        x_grid = np.linspace(0,1,2001)
+                    elif y_before[i] <= 100:
+                        x_grid = np.linspace(0,1,501)
+                    
+                    y_below[i], y_above[i] = get_interval(x_grid, pdf_efficiency( x_grid, y_after[i], y_before[i] ))
+                
+                    ye_below[i] = yratio[i] - y_below[i]
+                    ye_above[i] = y_above[i] - yratio[i]
+        
+        # https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportion_confint.html
+        elif uncertainty == "clopper":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, method='beta')
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            
+        elif uncertainty == "wilson":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, method='wilson') 
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            
+        elif uncertainty == "jeffreys":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, method='jeffreys')
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            for i in range(yratio.size):
                 if y_before[i] == 0:
                     ye_below[i] = 0
                     ye_above[i] = 0
-                    continue
                 
-                if y_before[i] > 5000:
-                    x_grid = np.linspace(0,1,50001)
-                elif y_before[i] > 1000:
-                    x_grid = np.linspace(0,1,20001)
-                elif y_before[i] > 500:
-                    x_grid = np.linspace(0,1,5001)
-                elif y_before[i] > 100:
-                    x_grid = np.linspace(0,1,2001)
-                elif y_before[i] <= 100:
-                    x_grid = np.linspace(0,1,501)
-                
-                y_below[i], y_above[i] = get_interval(x_grid, pdf_efficiency( x_grid, y_after[i], y_before[i] ))
-            
-                ye_below[i] = yratio[i] - y_below[i]
-                ye_above[i] = y_above[i] - yratio[i]
-        
-    elif uncertainty == "binomial":
-        ye_below = yeratio_binomial
-        ye_above = yeratio_binomial
     
-           
+    else:
+        print("You are using weighted events, the uncertainties are calculated using the gaussian approximation!")
+        err_after = np.sqrt(y2_after)
+        err_not_after = np.sqrt(y2_not_after)
+        
+        r = y_not_after/y_after
+        err_r = r*np.sqrt( (err_after/y_after)**2 + (err_not_after/y_not_after)**2 )
+        err_ratio = err_r/(1+r)**3
+        
+        N_eff_after = y_after**2/y2_after
+        N_eff_not_after = y_not_after**2/y2_not_after
+        ye_below = 2*err_ratio.copy()
+        ye_above = 2*err_ratio.copy()
+        good_approximation = True
+        for i in range(err_ratio.size):
+            if yratio[i]+ye_above[i] > 1:
+                ye_above[i] = 1 - yratio[i]
+            if yratio[i]-ye_below[i] < 0:
+                ye_below[i] = yratio[i]
+            if N_eff_after[i] <= 25 or N_eff_not_after[i] <= 25:
+                good_approximation = False
+        if good_approximation:
+            print("GAUSSIAN APPROXIMATION IS VALID!")
+        else:
+            print("GAUSSIAN APPROXIMATION IS NOT VALID!")
+            print("Check if N_eff > 25 for selected events:")
+            print(N_eff_after)
+            print("Check if N_eff > 25 for not selected events:")
+            print(N_eff_not_after)
+        
+        
         
     x = np.array(bins)
     dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
