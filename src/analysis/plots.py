@@ -380,7 +380,7 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
         
         r = y_not_after/y_after
         err_r = r*np.sqrt( (err_after/y_after)**2 + (err_not_after/y_not_after)**2 )
-        err_ratio = err_r/(1+r)**3
+        err_ratio = err_r/(1+r)**2
         
         N_eff_after = y_after**2/y2_after
         N_eff_not_after = y_not_after**2/y2_not_after
