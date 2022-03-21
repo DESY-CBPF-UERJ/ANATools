@@ -55,6 +55,7 @@ setup(
         "futures>=3.1.1",
         "scikit-learn>=0.24.2",
         "statsmodels>=0.12.2",
+        "h5py>=2.10.0",
     ],
     cmdclass={
         'build_py': build_py

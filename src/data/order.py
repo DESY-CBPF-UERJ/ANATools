@@ -3,6 +3,20 @@ import pandas as pd
 import numpy as np
 
 def order_datasets(dataframes, labels, colors):
+    
+    """
+    colors = [] 
+    labels = [] 
+    dataframes = []
+    for i in range(len(dataframes_in)):
+        if len( dataframes_in[i] ) > 0 :
+            colors.append( colors_in[i] )
+            labels.append( labels_in[i] )
+            dataframes.append( dataframes_in[i] )
+        else:
+            print(labels_in[i] + " is empty!!!")
+    """
+    
 
     color_0 = colors[0]
     label_0 = labels[0]
@@ -27,6 +41,7 @@ def order_datasets(dataframes, labels, colors):
         ds_lists.append({ "Datasets": labels[i], "Number of events": sizes[i] })
     ds_lists = pd.DataFrame(ds_lists)
     print(ds_lists)
+    
 
     return dataframes, labels, colors, sizes
         
