@@ -354,17 +354,17 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
         
         # https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportion_confint.html
         elif uncertainty == "clopper":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, method='beta')
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='beta')
             ye_below = yratio - y_below
             ye_above = y_above - yratio
             
         elif uncertainty == "wilson":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, method='wilson') 
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='wilson') 
             ye_below = yratio - y_below
             ye_above = y_above - yratio
             
         elif uncertainty == "jeffreys":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, method='jeffreys')
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='jeffreys')
             ye_below = yratio - y_below
             ye_above = y_above - yratio
             for i in range(yratio.size):
