@@ -25,6 +25,7 @@ def read_files(basedir, period, mode="normal", features=[]):
 
     for dataset, abspath in tqdm(datasets_abspath):
         dataset_name = dataset.split(".")[0]
+        #print(dataset_name)
         
         if mode == "normal" or mode == "scalars":
             if dataset.endswith(".h5"):
@@ -38,6 +39,7 @@ def read_files(basedir, period, mode="normal", features=[]):
                         elif len(features) > 0: 
                             if variable in features:
                                 variables_dict[variable] = np.array(f[group+"/"+variable])
+                        #print(variable, len(np.array(f[group+"/"+variable])))
                     if mode == "normal":
                         datasets[dataset_name] = pd.DataFrame(variables_dict)
                     if mode == "scalars":

@@ -1,7 +1,8 @@
 import warnings
 
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
+from sklearn import metrics 
 
 class control:
     """
@@ -167,10 +168,13 @@ class control:
         plt.plot(self.rej_others, self.eff_signal, color=color, label=label, linestyle=linestyle)
     
     #==============================================================================================================
-    def auc(self):
-        area = 0
-        for i in range(len(self.bins)-1):
-            area += 0.5*(self.eff_signal[i+1] + self.eff_signal[i])*abs(self.rej_others[i+1] - self.rej_others[i])
+    def auc(self, method="trapezoidal"):
+        if method == "sklearn":
+            area = metrics.auc(self.rej_others, self.eff_signal)
+        if method == "trapezoidal":
+            area = 0
+            for i in range(len(self.bins)-1):
+                area += 0.5*(self.eff_signal[i+1] + self.eff_signal[i])*abs(self.rej_others[i+1] - self.rej_others[i])
         return area    
     
     #==============================================================================================================

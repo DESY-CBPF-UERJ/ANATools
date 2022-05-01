@@ -10,13 +10,13 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', 99999999)
 
-class combine:
+class harvester:
     """
-    Combine information from distributions and systematic uncertainties
+    Gather information from distributions and systematic uncertainties
     """
 
     #==============================================================================================================
-    def __init__(self, region, var, datasets, labels, colors, systematics, bins, smooth_factor=0.05):
+    def __init__(self, region, var, datasets, labels, colors, systematics, bins, smooth_factor=0.05, analysis_name=None):
         
         # Maximum of 14 systematics
         # Get maximum source ID:
@@ -41,6 +41,12 @@ class combine:
         self.sys_IDs = []
         self.sys_labels = []
         self.sys_colors = ["dimgrey", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine", "darkorange", "blue", "limegreen", "red",  "darkgoldenrod", "lightskyblue", "darkgreen", "orange",  "skyblue", "darkviolet", "aqua", "gold", "pink", "magenta", "orchid", "darkkhaki", "lime", "greenyellow", "sandybrown", "brown", "mediumpurple", "forestgreen", "fuchsia", "goldenrod", "springgreen", "tomato", "royalblue", "chocolate", "aquamarine"]  
+        
+        self.signal_name = "no_signal" 
+        self.analysis_name = analysis_name
+        #self.obs_features_list = []
+        #self.obs_bins_list = []
+        
         
         for iProcType in range(len(datasets)):
             item_type = type(datasets[iProcType]).__name__
@@ -605,7 +611,9 @@ class combine:
             self.unc_data = np.sqrt(self.unc_data**2 + np.array(Unc_new)**2)
     
     #==============================================================================================================
-    def set_signal(self, signal_group):
+    def set_signal(self, signal_group, signal_name="Signal"):
+        
+        self.signal_name = signal_name
         
         item_type = type(signal_group).__name__
         if item_type != "list": 
@@ -641,7 +649,7 @@ class combine:
                 if Hist_new[iNewBin] < 0:
                     Hist_new[iNewBin] = 0
                     Unc_new[iNewBin] = 0
-                    
+            
             self.hist_signal = self.hist_signal + np.array(Hist_new)
             self.unc_signal = np.sqrt(self.unc_signal**2 + np.array(Unc_new)**2)
     
@@ -761,7 +769,32 @@ class combine:
             return self.hist_data, self.unc_data
         else:
             print("Error: data is not set!")
+    
+    #==============================================================================================================
+    def signal_plot(self, ax, color="blue", label="Signal"):
+        
+        if self.has_signal:
+            x = np.array(self.bins)
+            dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
+            x = x[:-1]
             
+            ext_hist_signal = np.append([self.hist_signal[0]], self.hist_signal)
+            
+            plt.step(self.bins, ext_hist_signal, color=color, label=label, linewidth=1.5)
+            
+            ax.errorbar(
+                x+0.5*dx, 
+                self.hist_signal, 
+                yerr=[self.unc_signal, self.unc_signal], 
+                fmt=',', 
+                color="blue",
+                elinewidth=1
+            )  
+            
+            return self.hist_signal, self.unc_signal
+        else:
+            print("Error: signal is not set!")
+    
     #==============================================================================================================
     def ratio_plot(self, ax):
         
@@ -798,28 +831,129 @@ class combine:
             print("Error: data is not set!")
 
     #==============================================================================================================
-    def signal_plot(self, ax):
+    """
+    def set_regions(self, regions_feature, regions_list):
         
-        if self.has_signal:
-            x = np.array(self.bins)
-            dx = np.array([ (x[i+1]-x[i]) for i in range(x.size-1)])
-            x = x[:-1]
+        self.regions_feature = regions_feature
+        self.regions_list = regions_list
+        self.regions_code_list = ["R"+str(i) for i in range(len(self.regions_list))]
+    """
+    #==============================================================================================================
+    """
+    def set_channels(self, channels_feature, channels_list):
+        
+        self.channels_feature = channels_feature
+        self.channels_list = channels_list  
+        self.channels_code_list = ["C"+str(i) for i in range(len(self.channels_list))]
+    """
+    #==============================================================================================================
+    """
+    def add_obs_bins(self, feature, bins):
+        
+        self.obs_features_list.append(feature)
+        self.obs_bins_list.append(bins)
+        
+        self.obs_bins_code_list = []
+        self.imax = 0
+        for i in range(len(self.obs_features_list)):
+            self.obs_bins_code_list.append(["F"+str(i)+"B"+str(j) for j in range(len(self.obs_bins_list[i]))])
+            self.imax += len(self.obs_bins_list[i])
             
-            ext_hist_signal = np.append([self.hist_signal[0]], self.hist_signal)
-            
-            plt.step(self.bins, ext_hist_signal, color="blue", label="Signal", linewidth=1.5)
-            
-            ax.errorbar(
-                x+0.5*dx, 
-                self.hist_signal, 
-                yerr=[self.unc_signal, self.unc_signal], 
-                fmt=',', 
-                color="blue",
-                elinewidth=1
-            )  
-            
-            return self.hist_signal, self.unc_signal
+        self.obs_bins_code_short_string = ""
+        self.obs_bins_code_long_string = ""
+        #for bin_code in self.obs_bins_code_list:
+        #    self.obs_bins_code_short_string += 
+    """
+    #==============================================================================================================
+    def get_combine_datacard(self, mode="counting", tag=None):
+        
+        bins_code = ["B"+str(i) for i in range(len(self.bins)-1)]
+        self.imax = len(self.bins)-1
+        self.jmax = self.number_ds_groups
+        self.kmax = self.N_sources
+        
+        bin_short_string = '{:<15s}'.format("bin")
+        for icode in bins_code:
+            bin_short_string = bin_short_string + '{0:<15s}'.format(icode)
+        bin_short_string = bin_short_string + "\n"
+        
+        obs_string = '{:<15s}'.format("observation")
+        for iobs in self.hist_data:
+            obs_string = obs_string + '{0:<15s}'.format(str(iobs))
+        obs_string = obs_string + "\n"
+        
+        
+        
+        
+        bin_long_string = '{:<15s}'.format("bin")
+        for icode in bins_code:
+            for j in range(self.jmax+1):
+                bin_long_string = bin_long_string + '{0:<15s}'.format(icode)
+        bin_long_string = bin_long_string + "\n"
+        
+        
+        processes = ["Signal"] + self.labels
+        process_string = '{:<15s}'.format("process")
+        for i in range(len(bins_code)):
+            for iproc in processes:
+                process_string = process_string + '{0:<15s}'.format(iproc)
+        process_string = process_string + "\n"
+        
+        processID_string = '{:<15s}'.format("process")
+        for i in range(len(bins_code)):
+            for j in range(len(processes)):
+                processID_string = processID_string + '{0:<15s}'.format(str(j))
+        processID_string = processID_string + "\n"
+        
+        processID_string = '{:<15s}'.format("rate")
+        for i in range(len(bins_code)):
+            for j in range(len(processes)):
+                processID_string = processID_string + '{0:<15s}'.format(str(j))
+        processID_string = processID_string + "\n"
+        
+        
+        #self.hist_table3D[0][0][iproc][ibin]
+        
+        
+        if tag is None:
+            file_name = "datacard_combine_" + self.analysis_name + "_" + mode + "_" + self.signal_name + ".txt"
         else:
-            print("Error: data is not set!")
+            file_name = "datacard_combine_" + self.analysis_name + "_" + mode + "_" + self.signal_name + "_" + tag + ".txt"
+        
+        datacard = open(file_name, "w") 
+        
+        datacard.write("# Datacard for " + self.analysis_name + " analysis\n")
+        datacard.write("# Signal sample: " + self.signal_name + "\n")
+        if mode == "counting":
+            datacard.write("# Mode: simple counting\n")
+        elif mode == "shape":
+            datacard.write("# Mode: binned shape\n")
+        #datacard.write("# Regions: " + str(self.regions_list) + "  <-->  " + str(self.regions_code_list))
+        #datacard.write("# Channels: " + str(self.channels_list) + "  <-->  " + str(self.channels_code_list))
+        #datacard.write("# Features & bins:")
+        #for i in range(len(self.obs_features_list)):
+        #    datacard.write("# " + self.obs_features_list[i] + " = " + str(self.obs_bins_list) + "  <-->  " + str(self.obs_bins_code_list))
+        datacard.write("#=====================================================================================\n")
+        datacard.write("imax " + str(self.imax) + "\tnumber of channels\n")                   #Future - Missing regions and channels
+        datacard.write("jmax " + str(self.jmax) + "\tnumber of backgrounds\n")
+        datacard.write("kmax " + str(self.kmax) + "\tnumber of nuisance parameters\n")
+        datacard.write("--------------------------------------------------------------------------------------\n")
+        datacard.write("--------------------------------------------------------------------------------------\n")
+        datacard.write(bin_short_string)
+        datacard.write(obs_string)                                                  #Future - Include regions and channes in the names
+        #bin          SR1     SR2 
+        #observation  10.0    11.0
+        datacard.write("--------------------------------------------------------------------------------------\n")
+        datacard.write(bin_long_string)
+        #datacard.write(process_string)
+        datacard.write(processID_string)
+        
+        #if mode == "counting":
+        #    datacard.write()
             
-            
+        
+
+
+
+
+        datacard.close()

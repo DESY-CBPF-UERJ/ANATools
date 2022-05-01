@@ -25,8 +25,8 @@ from .mva import (
     confusion_matrix_plot,
 )
 
-from .combine import (
-    combine,
+from .harvester import (
+    harvester,
 )
 
 
@@ -45,5 +45,5 @@ __all__ = [
     "get_interval",
     "correlation",
     "cov_matrix_plot",
-    "combine",
+    "harvester",
 ]
