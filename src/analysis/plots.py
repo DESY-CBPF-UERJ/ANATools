@@ -8,10 +8,9 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm 
 import statsmodels.stats.proportion as prop
 
-#from ..statistic import get_interval, pdf_efficiency
 
 from .statistic import (
-    pdf_efficiency,
+    #pdf_efficiency,
     get_interval
 )
 
@@ -219,6 +218,7 @@ def ratio_plot( ax, ynum, errnum, yden, errden, bins=np.linspace(0,100,5), color
 
     
 #======================================================================================================================
+"""
 def __bayesian(y_before, y_after, yratio):
 
     if y_before == 0:
@@ -240,7 +240,7 @@ def __bayesian(y_before, y_after, yratio):
     ye_above = y_above - yratio
 
     return ye_below, ye_above
-
+"""
 
 def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.linspace(0,100,5), histograms=False, y2label="Events", uncertainty="clopper", multiprocess=True, overflow=False, underflow=False, weight=None ):
     
@@ -306,6 +306,27 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
             ye_below = yeratio_binomial
             ye_above = yeratio_binomial
         
+        # https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportion_confint.html
+        elif uncertainty == "clopper":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='beta')
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            
+        elif uncertainty == "wilson":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='wilson') 
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            
+        elif uncertainty == "jeffreys":
+            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='jeffreys')
+            ye_below = yratio - y_below
+            ye_above = y_above - yratio
+            for i in range(yratio.size):
+                if y_before[i] == 0:
+                    ye_below[i] = 0
+                    ye_above[i] = 0
+        
+        """
         elif uncertainty == "bayesian":
 
             if multiprocess is True:
@@ -351,27 +372,7 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
                 
                     ye_below[i] = yratio[i] - y_below[i]
                     ye_above[i] = y_above[i] - yratio[i]
-        
-        # https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportion_confint.html
-        elif uncertainty == "clopper":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='beta')
-            ye_below = yratio - y_below
-            ye_above = y_above - yratio
-            
-        elif uncertainty == "wilson":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='wilson') 
-            ye_below = yratio - y_below
-            ye_above = y_above - yratio
-            
-        elif uncertainty == "jeffreys":
-            y_below, y_above = prop.proportion_confint(y_after, y_before, alpha=0.32, method='jeffreys')
-            ye_below = yratio - y_below
-            ye_above = y_above - yratio
-            for i in range(yratio.size):
-                if y_before[i] == 0:
-                    ye_below[i] = 0
-                    ye_above[i] = 0
-                
+        """        
     
     else:
         print("You are using weighted events, the uncertainties are calculated using the gaussian approximation!")
@@ -413,12 +414,17 @@ def efficiency_plot( ax, var, dataframe, bit, label, color='black', bins=np.lins
     
     return yratio, ye_below, ye_above    
     
+def limits_plot( ax, parameter, expected_limits, observed_limits=None ):
+
+    if observed_limits is not None:
+        plt.plot(parameter, observed_limits, color='black', label=r'$\mathrm{Observed}$', linewidth=1.5, marker='.')
+
+    ax.fill_between(parameter, expected_limits[0], expected_limits[4], facecolor='gold', linewidth=0, label='$\pm 2\ \mathrm{std.\ deviation}$')
+    ax.fill_between(parameter, expected_limits[1], expected_limits[3], facecolor='limegreen', linewidth=0, label='$\pm 1\ \mathrm{std.\ deviation}$')
+    plt.plot(parameter, expected_limits[2], color='blue', label=r'$\mathrm{Asymptotic\ CL}_\mathrm{s}\ \mathrm{expected}$', linewidth=1.5, linestyle='dashdot')
     
     
-    
-    
-    
-    
+   
     
     
     

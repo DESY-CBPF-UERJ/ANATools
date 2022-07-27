@@ -5,7 +5,7 @@ import json
 import h5py
 import numpy as np
 
-def read_files(basedir, period, mode="normal", features=[]):
+def read_files(basedir, period=None, mode="normal", features=[]):
     """
     Read combined datasets into pandas DataFrame object.
 
@@ -19,7 +19,10 @@ def read_files(basedir, period, mode="normal", features=[]):
     print("")
     print("Loading datasets...")
     
-    datasets_dir = os.path.join(basedir, period)
+    if period is None:
+        datasets_dir = os.path.join(basedir)
+    else:
+        datasets_dir = os.path.join(basedir, period)
     datasets_abspath = [(f, os.path.join(datasets_dir, f)) for f in os.listdir(datasets_dir)]
     datasets = {}
 

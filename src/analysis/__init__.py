@@ -5,6 +5,7 @@ from .plots import (
     data_plot,
     ratio_plot,
     efficiency_plot,
+    limits_plot,
 )
 
 from .style import (
@@ -15,7 +16,7 @@ from .style import (
 )
 
 from .statistic import (
-    pdf_efficiency,
+    #pdf_efficiency,
     get_interval,
     correlation,
 )
@@ -37,11 +38,12 @@ __all__ = [
     "data_plot",
     "ratio_plot",
     "efficiency_plot",
+    "limits_plot",
     "start",
     "position",
     "labels",
     "style",
-    "pdf_efficiency",
+    #"pdf_efficiency",
     "get_interval",
     "correlation",
     "cov_matrix_plot",

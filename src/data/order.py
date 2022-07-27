@@ -26,9 +26,11 @@ def order_datasets(dataframes, labels, colors):
     colors.pop(0)
     labels.pop(0)
     dataframes.pop(0)
+    dataframes = [ df_i.reset_index() for df_i in dataframes ]
 
     sizes_0 = [ df_i.evtWeight.sum() for df_i in dataframes ]
     sizes_neg = [-1.0 if x==0.0 else x for x in sizes_0]
+    
     sizes_neg, dataframes, labels, colors = (list(t) for t in zip(*sorted(zip(sizes_neg, dataframes, labels, colors))))
     colors.insert(0, color_0)
     labels.insert(0, label_0)
@@ -37,11 +39,13 @@ def order_datasets(dataframes, labels, colors):
     sizes = [0.0 if x==-1.0 else x for x in sizes_neg]
 
     ds_lists = []
+    total_size = 0
     for i in range(len(dataframes)):
         ds_lists.append({ "Datasets": labels[i], "Number of events": sizes[i] })
+        total_size += sizes[i]
     ds_lists = pd.DataFrame(ds_lists)
     print(ds_lists)
-    
+    print("Purity:", sizes[-1]/total_size)
 
     return dataframes, labels, colors, sizes
         

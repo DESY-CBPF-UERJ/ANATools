@@ -1,7 +1,8 @@
 import numpy as np
-import mpmath as mp
+#import mpmath as mp
 
 #======================================================================================================================
+"""
 def pdf_efficiency( e, k, n ):
     # Enter a float (or a list) of efficiencie(s) and return the pdf value associated to it, considering the parameters k (number of events selected), and n (total number of events).
     # The gamma function returns reasonable values for n < 10000.
@@ -34,7 +35,7 @@ def pdf_efficiency( e, k, n ):
         P = P[0]
     
     return P
-
+"""
 
 #======================================================================================================================    
 def get_interval(x, pdf, nsigma=1):
